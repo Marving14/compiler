@@ -379,7 +379,8 @@ class Interpreter:
         elif node.op_tok.value == TT_DIV: 
             result = left.dived_by(right)
 
-        return (result.set_pos(node.pos_start, node.pos_end))
+        return result.set_pos(node.pos_start, node.pos_end)
+
 
     def visit_UnaryOpNode(self, node):
         #print("Found unary op node!")
@@ -387,6 +388,7 @@ class Interpreter:
 
         if node.op_tok.type == TT_MINUS:
             number = number.multed_by(Number(-1))
+
         return number.set_pos(node.pos_start, node.pos_end)
     
 
