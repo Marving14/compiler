@@ -1,6 +1,7 @@
-expr : term ((PLUS1MINS) term) * 
+expr   :  KEYWORD:VAR IDENTIFIER EQ expr 
+       :  term ((PLUS1MINS) term) * 
 
-term : factor ((MUL|DIV) factor) *
+term   : factor ((MUL|DIV) factor) *
 
 factor :  (PLUS|MINUS) factor 
        :  power 
@@ -10,3 +11,5 @@ power  :  atom (POW factor)*
 atom   :  INT|FLOAT
        :  LPARENT expr RPARENT
        
+
+05.09
