@@ -1,0 +1,15 @@
+IF <condition> THEN <expression> ELIF <condition> THEN <expression>
+
+
+1   modify atom to expect IF
+2   wrap in register
+3   check for errors
+
+4   define if_expr
+5   check for ELIF
+6   check for ELSE
+
+7   add NODE CLASS IFNODE
+8   
+9   updat interpreter 
+

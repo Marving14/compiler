@@ -15,6 +15,12 @@ power         :  atom (POW factor)*
 
 atom          :  INT|FLOAT|IDENTIFIER
               :  LPARENT expr RPARENT
+
+if-expr       : KEYWORD:IF expr KEYWORD:THEN expr
+              : (KEYWORD:ELIF expr KEYWORD:THEN expr)*
+              : (KEYWORD:ELSE expr) ? optional
+       
+
        
 
 05.09
