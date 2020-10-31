@@ -10,7 +10,11 @@
 
 **Avance** 
 
-Archivo **basic.py** contiene datos de analizador lexico, interprete y manejo de errores, nodos, parser... hasta ahora 
+Archivo **basic.py** contiene datos de analizador lexico, interprete y manejo de errores, nodos, parser.
+**Ya** se pueden realizar condiciones IF-Else
 
-Actualmente permite realizar operaciones numericas int, float y arroja errores con otro tipo de inputs
+
+Actualmente permite realizar operaciones numericas int, float y arroja errores con otro tipo de inputs, creación de condiciones
+
+Aun no se pueden realizar funciones :( pero ya casi
 
