@@ -18,23 +18,11 @@ FOR <var_name> = <start_value> TO <end_value> STEP <incremental> THEN <expressio
 
 1   update keywords
 2   add ForNode CLASS
-3   
-4   
-5   
+3   In ATOM in Parser  look for FOR and WHILE keyword 
+4   In Parser add for_expr and while_expr
+5   Update interpreter to visit_ForNode and Visit_WhileNode
 6   
 7   
 8   
 9   
 
-
-WHILE <condition> THEN <expression>
-
-1   
-2   
-3       
-4   
-5   
-6   
-7   
-8   
-9   
