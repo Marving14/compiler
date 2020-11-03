@@ -5,10 +5,10 @@ while True:
     result, error = basic.run('<stdin>', text)
     
     if error: print(error.as_string())
-    else: print(result)
+    elif result: print(result)
  
 
 
 
 
-#https://www.youtube.com/watch?v=-ic5381rYcg&list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD&index=4&ab_channel=CodePulse
+#https://www.youtube.com/watch?v=_Gb5H7lJSlE&list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD&index=10&ab_channel=CodePulse

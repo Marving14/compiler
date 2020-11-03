@@ -1,0 +1,50 @@
+IF <condition> THEN <expression> ELIF <condition> THEN <expression>
+
+
+1   modify atom to expect IF
+2   wrap in register
+3   check for errors
+
+4   define if_expr
+5   check for ELIF
+6   check for ELSE
+
+7   add NODE CLASS IFNODE
+8   
+9   updat interpreter 
+
+
+FOR <var_name> = <start_value> TO <end_value> STEP <incremental> THEN <expression>
+
+1   update keywords
+2   add ForNode CLASS
+3   In ATOM in Parser  look for FOR and WHILE keyword 
+4   In Parser add for_expr and while_expr
+5   Update interpreter to visit_ForNode and Visit_WhileNode
+6   
+7   
+8   
+9   
+
+Functions
+FUN (a) -> a + 6
+VAR some_func = FUNC(a) -> a + 6 
+some_func(12) 
+
+STRING
+1 TT_STRING token type
+2 in lexer look for " and append method make_string
+3 def make_string method 
+4 in grammar allow strings in atom 
+    5   Add a new string node in NODES, identical to NumberNode
+6 in def atom check for TT_STRING  (like one checking for int|float)
+7 Create class String 
+    8 add operation
+    9 mult operation
+10 declare def visit_StringNode
+
+
+rem
+* change FUN to module 
+* change scape_character from '\\' to '%%'
+
