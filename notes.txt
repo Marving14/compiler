@@ -31,6 +31,20 @@ FUN (a) -> a + 6
 VAR some_func = FUNC(a) -> a + 6 
 some_func(12) 
 
+STRING
+1 TT_STRING token type
+2 in lexer look for " and append method make_string
+3 def make_string method 
+4 in grammar allow strings in atom 
+    5   Add a new string node in NODES, identical to NumberNode
+6 in def atom check for TT_STRING  (like one checking for int|float)
+7 Create class String 
+    8 add operation
+    9 mult operation
+10 declare def visit_StringNode
+
 
 rem
 * change FUN to module 
+* change scape_character from '\\' to '%%'
+
