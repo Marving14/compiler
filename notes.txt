@@ -26,3 +26,11 @@ FOR <var_name> = <start_value> TO <end_value> STEP <incremental> THEN <expressio
 8   
 9   
 
+Functions
+FUN (a) -> a + 6
+VAR some_func = FUNC(a) -> a + 6 
+some_func(12) 
+
+
+rem
+* change FUN to module 
