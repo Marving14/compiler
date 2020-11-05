@@ -1,6 +1,4 @@
 IF <condition> THEN <expression> ELIF <condition> THEN <expression>
-
-
 1   modify atom to expect IF
 2   wrap in register
 3   check for errors
@@ -15,16 +13,11 @@ IF <condition> THEN <expression> ELIF <condition> THEN <expression>
 
 
 FOR <var_name> = <start_value> TO <end_value> STEP <incremental> THEN <expression>
-
 1   update keywords
 2   add ForNode CLASS
 3   In ATOM in Parser  look for FOR and WHILE keyword 
 4   In Parser add for_expr and while_expr
 5   Update interpreter to visit_ForNode and Visit_WhileNode
-6   
-7   
-8   
-9   
 
 Functions
 FUN (a) -> a + 6
@@ -44,7 +37,49 @@ STRING
 10 declare def visit_StringNode
 
 
+lists 
+[]
+[1,2,3,4]
+Plus Op     : add element to list
+            : [1,2,3] + 4  => [1,2,3,4]
+Mult Op     : concatenate lists 
+            : [1,2,3] * [4,5,6] => [1,2,3,4,5,6]
+Sub Op      : remove element (in given position) from list 
+            : [1,2,3] - 1 =>   [1,3]
+            : [1,2,3] - 0 =>   [2,3]
+            : [1,2,3] - -1 => [1,2]   # removes last element in the list 
+            : [1,2,3] - -2 => [1,3]   # removes the second last elem in list 
+Div Op      : gets element in given position 
+            : [1,2,3] / 0 => 1
+            : [1,2,3] / 1 => 2
+            : [1,2,3] / -1 => 3    # - gives the nth last element in list 
+
+1 tokens lsquare and rsquare 
+2 in lexer look for them 
+3 in gramar 
+    Atom list-expr 
+4 define ListNode class 
+5 In atom look for lsquares
+6 define list_expr 
+7 in VALUES add List class  and its methods 
+8 in interpreter add visit_ListNode 
+9 visit ForNode can now return list, update it 
+
+BUILD-IN FUNCTIONS 
+1 name must start with -->> execute_name    def execute_print...
+2 declare BuiltInFunction.name as a BuiltInFunction
+3 declare BuiltInFunction in Symbol Table global 
+
+COMMENTS
+1 in lexer 
+2
+3
+4
+
+
 rem
 * change FUN to module 
 * change scape_character from '\\' to '%%'
-
+* context has the symbol table 
+    exec_ctx -> execution context 
+* change comments from # to %% 
