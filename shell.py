@@ -1,7 +1,7 @@
 import basic
 
 while True: 
-    text = input('command > ')
+    text = input('marving > ')
     if text.strip() =="": continue
     result, error = basic.run('<stdin>', text)
     
@@ -10,11 +10,12 @@ while True:
         if len(result.elements) ==1:
             print(repr(result.elements[0]))
         else :
-            print(result)
+            print(repr(result))
  
 
 
 
 
-#https://www.youtube.com/watch?v=zKCckdwwBsU&list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD&index=13&ab_channel=CodePulse
+#https://www.youtube.com/watch?v=-7a0ys7gF5E&list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD&index=15&ab_channel=CodePulse
+
 

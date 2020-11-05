@@ -69,11 +69,17 @@ BUILD-IN FUNCTIONS
 1 name must start with -->> execute_name    def execute_print...
 2 declare BuiltInFunction.name as a BuiltInFunction
 3 declare BuiltInFunction in Symbol Table global 
-4 
+
+COMMENTS
+1 in lexer 
+2
+3
+4
+
 
 rem
 * change FUN to module 
 * change scape_character from '\\' to '%%'
 * context has the symbol table 
     exec_ctx -> execution context 
-* 
+* change comments from # to %% 

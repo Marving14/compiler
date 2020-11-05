@@ -1,0 +1,6 @@
+PRINT("hello there  "); 
+
+FOR i = 0 TO 5 THEN
+    PRINT(i)
+    #PRINT(" loop")
+END 
