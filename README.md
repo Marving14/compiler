@@ -16,5 +16,6 @@ Archivo **basic.py** contiene datos de analizador lexico, interprete y manejo de
 
 Actualmente permite realizar operaciones numericas int, float y arroja errores con otro tipo de inputs, creación de condiciones
 
-Aun no se pueden realizar funciones :( pero ya casi
+Ya se pueden realizar funciones y leer archivos. Asies 
+
 
