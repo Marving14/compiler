@@ -78,8 +78,7 @@ COMMENTS
 
 
 rem
-* change FUN to module 
-* change scape_character from '\\' to '%%'
+done * change FUN to MODULE 
 * context has the symbol table 
     exec_ctx -> execution context 
 * change comments from # to %% 

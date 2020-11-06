@@ -116,7 +116,7 @@ TT_NEWLINE		= 'NEWLINE'
 TT_EOF				= 'EOF'
 
 KEYWORDS = [
-  'VAR',
+  'var',
   'AND',
   'OR',
   'NOT',
@@ -127,7 +127,7 @@ KEYWORDS = [
   'TO',
   'STEP',
   'WHILE',
-  'FUN',
+  'MODULE',
   'THEN',
   'END',
   'RETURN',
@@ -632,14 +632,14 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'RETURN', 'CONTINUE', 'BREAK', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'RETURN', 'CONTINUE', 'BREAK', 'var', 'IF', 'FOR', 'WHILE', 'MODULE', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
       ))
     return res.success(expr)
 
   def expr(self):
     res = ParseResult()
 
-    if self.current_tok.matches(TT_KEYWORD, 'VAR'):
+    if self.current_tok.matches(TT_KEYWORD, 'var'):
       res.register_advancement()
       self.advance()
 
@@ -670,7 +670,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'var', 'IF', 'FOR', 'WHILE', 'MODULE', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
       ))
 
     return res.success(node)
@@ -692,7 +692,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected int, float, identifier, '+', '-', '(', '[', 'IF', 'FOR', 'WHILE', 'FUN' or 'NOT'"
+        "Expected int, float, identifier, '+', '-', '(', '[', 'IF', 'FOR', 'WHILE', 'MODULE' or 'NOT'"
       ))
 
     return res.success(node)
@@ -737,7 +737,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected ')', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+            "Expected ')', 'var', 'IF', 'FOR', 'WHILE', 'MODULE', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
           ))
 
         while self.current_tok.type == TT_COMMA:
@@ -812,14 +812,14 @@ class Parser:
       if res.error: return res
       return res.success(while_expr)
 
-    elif tok.matches(TT_KEYWORD, 'FUN'):
+    elif tok.matches(TT_KEYWORD, 'MODULE'):
       func_def = res.register(self.func_def())
       if res.error: return res
       return res.success(func_def)
 
     return res.failure(InvalidSyntaxError(
       tok.pos_start, tok.pos_end,
-      "Expected int, float, identifier, '+', '-', '(', '[', IF', 'FOR', 'WHILE', 'FUN'"
+      "Expected int, float, identifier, '+', '-', '(', '[', IF', 'FOR', 'WHILE', 'MODULE'"
     ))
 
   def list_expr(self):
@@ -844,7 +844,7 @@ class Parser:
       if res.error:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected ']', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+          "Expected ']', 'var', 'IF', 'FOR', 'WHILE', 'MODULE', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
         ))
 
       while self.current_tok.type == TT_COMMA:
@@ -1112,13 +1112,15 @@ class Parser:
 
     return res.success(WhileNode(condition, body, False))
 
+
+  # func_def espera MODULE como input para crear una funcion o metodo 
   def func_def(self):
     res = ParseResult()
 
-    if not self.current_tok.matches(TT_KEYWORD, 'FUN'):
+    if not self.current_tok.matches(TT_KEYWORD, 'MODULE'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'FUN'"
+        f"Expected 'MODULE'"
       ))
 
     res.register_advancement()
@@ -2190,3 +2192,5 @@ def run(fn, text):
   result = interpreter.visit(ast.node, context)
 
   return result.value, result.error
+
+  
