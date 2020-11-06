@@ -19,3 +19,12 @@ Actualmente permite realizar operaciones numericas int, float y arroja errores c
 Ya se pueden realizar funciones y leer archivos. Asies 
 
 
+**GUI** 
+Será la interfaz grafica para el lenguage
+Actualmente puede abrir archivos, guardarlos, crear nuevos
+Falta: 
+    Compilar el codigo
+    Mostrar una consola con la compilacion de codigo
+    Resolver dudas ...
+
+
