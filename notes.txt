@@ -1,3 +1,10 @@
+Questions:
+1. Se puede hacer funciones no tipadas, que puedan o no tener  "return" de cualquier tipo 
+2. 
+
+
+
+
 IF <condition> THEN <expression> ELIF <condition> THEN <expression>
 1   modify atom to expect IF
 2   wrap in register
