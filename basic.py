@@ -5,12 +5,50 @@ from string_with_arrows import *
 import string
 import os
 import math
+import turtle
+import random
+
+#######################################
+# TURTLE 
+#######################################
+
+global screen
+screen = None 
+global aTurtle
+aTurtle = turtle.Turtle() 
+
+def start_Turtle():
+  screen = turtle.getscreen() 
+  
+
+
+
+#######################################
+# TURTLE FUNCTIONS
+#######################################
+def turtle_square(side):
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+
+def turtle_circle(radius):
+  aTurtle.circle(radius)
+
+def turtle_dot(diameter):
+  aTurtle.dot(diameter)
+
+
 #######################################
 # CONSTANTS
 #######################################
 DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
+
 #######################################
 # ERRORS
 #######################################
@@ -114,6 +152,7 @@ TT_COMMA			= 'COMMA'
 TT_ARROW			= 'ARROW'
 TT_NEWLINE		= 'NEWLINE'
 TT_EOF				= 'EOF'
+
 
 KEYWORDS = [
   'var',
@@ -1652,6 +1691,7 @@ class Function(BaseFunction):
   def __repr__(self):
     return f"<function {self.name}>"
 
+
 class BuiltInFunction(BaseFunction):
   def __init__(self, name):
     super().__init__(name)
@@ -1683,12 +1723,13 @@ class BuiltInFunction(BaseFunction):
     return f"<built-in function {self.name}>"
 
   #####################################
+  
 
   def execute_print(self, exec_ctx):
     print(str(exec_ctx.symbol_table.get('value')))
     return RTResult().success(Number.null)
   execute_print.arg_names = ['value']
-  
+
   def execute_print_ret(self, exec_ctx):
     return RTResult().success(String(str(exec_ctx.symbol_table.get('value'))))
   execute_print_ret.arg_names = ['value']
@@ -1848,6 +1889,250 @@ class BuiltInFunction(BaseFunction):
     return RTResult().success(Number.null)
   execute_run.arg_names = ["fn"]
 
+  ############################################################################
+  def execute_circle(self, exec_ctx):
+    radius = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(radius, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+  
+    aux= str(radius)
+    aux = int(aux)
+    turtle_circle(aux)
+    return(RTResult().success(Number.null))
+  execute_circle.arg_names = ["value"]
+
+  def execute_square(self, exec_ctx):
+    sq = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(sq, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(sq)
+    aux = int(aux)
+    turtle_square(aux)
+    return(RTResult().success(Number.null))
+  execute_square.arg_names = ["value"]
+
+  def execute_dot(self, exec_ctx):
+    dot = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(dot, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(dot)
+    aux = int(aux)
+    turtle_dot(aux)
+    return(RTResult().success(Number.null))
+  execute_dot.arg_names = ["value"]
+
+  def execute_penup(self, exec_ctx):
+    aTurtle.penup() 
+    return(RTResult().success(Number.null))
+  execute_penup.arg_names = []
+
+  def execute_pendown(self, exec_ctx):
+    aTurtle.pendown() 
+    return(RTResult().success(Number.null))
+  execute_pendown.arg_names = []
+
+  def execute_forward(self, exec_ctx):
+    distance = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(distance, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(distance)
+    aux = int(aux)
+    aTurtle.forward(aux)
+    return(RTResult().success(Number.null))
+  execute_forward.arg_names = ["value"]
+
+  def execute_backward(self, exec_ctx):
+    distance = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(distance, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(distance)
+    aux = int(aux)
+    aTurtle.backward(aux)
+    return(RTResult().success(Number.null))
+  execute_backward.arg_names = ["value"]
+
+  def execute_right(self, exec_ctx):
+    angle = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(angle, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Angle must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(angle)
+    aux = int(aux)
+    aTurtle.right(aux)
+    return(RTResult().success(Number.null))
+  execute_right.arg_names = ["value"]
+
+  def execute_left(self, exec_ctx):
+    angle = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(angle, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Angle must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(angle)
+    aux = int(aux)
+    aTurtle.left(aux)
+    return(RTResult().success(Number.null))
+  execute_left.arg_names = ["value"]
+
+  def execute_goto(self, exec_ctx):
+    x = exec_ctx.symbol_table.get("x")
+    y = exec_ctx.symbol_table.get("y")
+
+    if not isinstance(x, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "X argument must be Number",
+        exec_ctx
+      ))
+    if not isinstance(y, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Y argument must be Number",
+        exec_ctx
+      ))
+    auxX= str(x)
+    auxX = int(auxX)
+    auxY= str(y)
+    auxY = int(auxY)
+
+    aTurtle.goto(auxX, auxY)
+    return(RTResult().success(Number.null))
+  execute_goto.arg_names = ["x", "y"]
+
+  def execute_home(self, exec_ctx):
+    aTurtle.home() 
+    return(RTResult().success(Number.null))
+  execute_home.arg_names = []
+
+  def execute_bgcolor(self, exec_ctx):
+    color = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(color, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Color must be string",
+        exec_ctx
+      ))
+    
+    aux= str(color)
+    turtle.bgcolor(aux)
+    return(RTResult().success(Number.null))
+  execute_bgcolor.arg_names = ["value"]
+
+  def execute_turtlecolor(self, exec_ctx):
+    color = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(color, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Color must be string",
+        exec_ctx
+      ))
+    
+    aux= str(color)
+    aTurtle.fillcolor(aux)
+    return(RTResult().success(Number.null))
+  execute_turtlecolor.arg_names = ["value"]
+
+  def execute_title(self, exec_ctx):
+    title = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(title, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "title must be string",
+        exec_ctx
+      ))
+    
+    aux= str(title)
+    turtle.title(aux)
+    return(RTResult().success(Number.null))
+  execute_title.arg_names = ["value"]
+
+  def execute_pensize(self, exec_ctx):
+    size = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(size, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "size must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(size)
+    aux = int(aux)
+    aTurtle.pensize(aux)
+    return(RTResult().success(Number.null))
+  execute_pensize.arg_names = ["value"]
+
+  def execute_turtleundo(self, exec_ctx):
+    aTurtle.undo() 
+    return(RTResult().success(Number.null))
+  execute_turtleundo.arg_names = []
+
+  def execute_turtleclear(self, exec_ctx):
+    aTurtle.clear() 
+    return(RTResult().success(Number.null))
+  execute_turtleclear.arg_names = []
+
+  def execute_turtlereset(self, exec_ctx):
+    aTurtle.reset() 
+    return(RTResult().success(Number.null))
+  execute_turtlereset.arg_names = []
+
+  def execute_stamp(self, exec_ctx):
+    aTurtle.stamp() 
+    return(RTResult().success(Number.null))
+  execute_stamp.arg_names = []
+
+  
+
+
+
+
+
+
+
+
+
 BuiltInFunction.print       = BuiltInFunction("print")
 BuiltInFunction.print_ret   = BuiltInFunction("print_ret")
 BuiltInFunction.input       = BuiltInFunction("input")
@@ -1862,6 +2147,29 @@ BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
 BuiltInFunction.len					= BuiltInFunction("len")
 BuiltInFunction.run					= BuiltInFunction("run")
+
+BuiltInFunction.circle       = BuiltInFunction("circle")
+BuiltInFunction.square      = BuiltInFunction("square")
+BuiltInFunction.dot      = BuiltInFunction("dot")
+BuiltInFunction.penup      = BuiltInFunction("penup")
+BuiltInFunction.pendown      = BuiltInFunction("pendown")
+BuiltInFunction.forward      = BuiltInFunction("forward")
+BuiltInFunction.backward      = BuiltInFunction("backward")
+BuiltInFunction.right      = BuiltInFunction("right")
+BuiltInFunction.left      = BuiltInFunction("left")
+BuiltInFunction.home      = BuiltInFunction("home")
+BuiltInFunction.goto      = BuiltInFunction("goto")
+BuiltInFunction.bgcolor      = BuiltInFunction("bgcolor")
+BuiltInFunction.turtlecolor      = BuiltInFunction("turtlecolor")
+BuiltInFunction.title      = BuiltInFunction("title")
+BuiltInFunction.pensize      = BuiltInFunction("pensize")
+BuiltInFunction.turtleundo      = BuiltInFunction("turtleundo")
+BuiltInFunction.turtleclear      = BuiltInFunction("turtleclear")
+BuiltInFunction.turtlereset     = BuiltInFunction("turtlereset")
+BuiltInFunction.stamp     = BuiltInFunction("stamp")
+
+
+
 
 #######################################
 # CONTEXT
@@ -2174,6 +2482,29 @@ global_symbol_table.set("EXTEND", BuiltInFunction.extend)
 global_symbol_table.set("LEN", BuiltInFunction.len)
 global_symbol_table.set("RUN", BuiltInFunction.run)
 
+global_symbol_table.set("circle", BuiltInFunction.circle)
+global_symbol_table.set("square", BuiltInFunction.square)
+global_symbol_table.set("dot", BuiltInFunction.dot)
+global_symbol_table.set("penup", BuiltInFunction.penup)
+global_symbol_table.set("pendown", BuiltInFunction.pendown)
+global_symbol_table.set("forward", BuiltInFunction.forward)
+global_symbol_table.set("backward", BuiltInFunction.backward)
+global_symbol_table.set("right", BuiltInFunction.right)
+global_symbol_table.set("left", BuiltInFunction.left)
+global_symbol_table.set("home", BuiltInFunction.home)
+global_symbol_table.set("goto", BuiltInFunction.goto)
+global_symbol_table.set("bgcolor", BuiltInFunction.bgcolor)
+global_symbol_table.set("turtlecolor", BuiltInFunction.turtlecolor)
+global_symbol_table.set("title", BuiltInFunction.title)
+global_symbol_table.set("pensize", BuiltInFunction.pensize)
+global_symbol_table.set("turtleundo", BuiltInFunction.turtleundo)
+global_symbol_table.set("turtleclear", BuiltInFunction.turtleclear)
+global_symbol_table.set("turtlereset", BuiltInFunction.turtlereset)
+global_symbol_table.set("stamp", BuiltInFunction.stamp)
+
+
+
+
 def run(fn, text):
   # Generate tokens
   lexer = Lexer(fn, text)
@@ -2190,6 +2521,8 @@ def run(fn, text):
   context = Context('<program>')
   context.symbol_table = global_symbol_table
   result = interpreter.visit(ast.node, context)
+
+  start_Turtle()
 
   return result.value, result.error
 
