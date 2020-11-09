@@ -1,11 +1,5 @@
 import basic
 
-
-
-    
-
-
-
 while True: 
     text = input('marving > ')
     if text.strip() =="": continue
@@ -18,11 +12,6 @@ while True:
         else :
             print(repr(result))
  
-
-
-
-
-
 
 
 
