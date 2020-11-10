@@ -216,7 +216,7 @@ class Lexer:
     while self.current_char != None:
       if self.current_char in ' \t':
         self.advance()
-      elif self.current_char == '#':
+      elif self.current_char == '%':
         self.skip_comment()
       elif self.current_char in ';\n':
         tokens.append(Token(TT_NEWLINE, pos_start=self.pos))
@@ -386,8 +386,11 @@ class Lexer:
   def skip_comment(self):
     self.advance()
 
-    while self.current_char != '\n':
-      self.advance()
+    if self.current_char =='%':
+      while self.current_char != '\n':
+        self.advance()
+    else:
+      return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
 
     self.advance()
 

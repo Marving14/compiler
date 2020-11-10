@@ -2,9 +2,8 @@ PRINT("hello there  ")
 
 for i = 0 to 7 then
     PRINT(i)
-    #PRINT(" loop")
+    %%PRINT(" loop")
 end 
-
 
 bgcolor("red")
 title("Holiiii")
@@ -28,4 +27,3 @@ stamp()
 forward(30)
 turtleclear()
 turtlereset()
-
