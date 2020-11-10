@@ -1,4 +1,4 @@
-module par(numero);
+module printMesagge(message);
     var a = 5;
     for i=0 to 7 step 2 then
         PRINT(message)
@@ -6,4 +6,4 @@ module par(numero);
 end
 
 
-printMesaggeX2("como tas")
+printMesagge("hola")

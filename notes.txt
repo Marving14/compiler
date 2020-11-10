@@ -87,15 +87,8 @@ BUILD-IN FUNCTIONS
 
 
 
-COMMENTS
-1 in lexer 
-2
-3
-4
-
-
 rem
-done * change FUN to MODULE 
+
 * context has the symbol table 
     exec_ctx -> execution context 
 * change comments from # to %% 
