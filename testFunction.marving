@@ -1,8 +1,26 @@
+%%program mod;
+var m =10; 
+var a = 5;
+var b =6;
+
 module printMesagge(message);
     var a = 5;
-    for i=0 to 7 step 2 then
-        PRINT(message)
+    circle(50)
+    for i=0 to 7 step 2 do
+        write(message)
+        forward(30)
+        stamp()
     end
+    square(20)
+    turtleundo()
+    printMesagge("22222")
+    if (a>b) then:
+        write("A mayor")
+    else:
+        write("b MAYOR") 
+
+    
+
 end
 
 

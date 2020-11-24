@@ -1,0 +1,34 @@
+main(){
+    var sorted = [8,6,3,9];
+    var n = len(sorted);
+    write(sorted)
+
+    for a = 0 to n step 1 do:
+        write("first for"); write("a="); write(a);
+
+        for b = 0 to n-1 step 1 do:
+            write("second for");
+            write("b= ");write(b); 
+            var cont = b+1;
+
+            write("sorted/b");    write(sorted/b)
+            write("sorted/cont");    write(sorted/cont)
+
+            if sorted/b > sorted/cont then:
+                write("if")
+
+                var temp = sorted/b;
+                set(sorted, b, sorted/cont);
+                set(sorted, cont, temp);
+
+                write("sorted if: ");write(sorted);
+            end
+
+        endFor
+        write("sorted:  a= "); write(a); write(sorted);
+
+    endFor
+    write("sorted")
+    write(sorted)
+
+}

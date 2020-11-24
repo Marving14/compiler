@@ -1,6 +1,7 @@
-Questions:
-1. Se puede hacer funciones no tipadas, que puedan o no tener  "return" de cualquier tipo 
-2. 
+Todo 
+1. en parser -> generar cuadruplos
+2. conectar maquina virtual a cuadruplos
+3. PRINT no recibe cosas separadas por coma para imprimir varios
 
 
 
@@ -91,4 +92,3 @@ rem
 
 * context has the symbol table 
     exec_ctx -> execution context 
-* change comments from # to %% 

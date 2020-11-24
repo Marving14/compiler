@@ -10,16 +10,13 @@
 
 **Avance** 
 
-Archivo **basic.py** contiene datos de analizador lexico, interprete y manejo de errores, nodos, parser.
-**Ya** se pueden realizar condiciones IF-Else
+Archivo **lexer.py** contiene datos de analizador lexico, interprete y manejo de errores, nodos, parser.
+**Ya** se pueden realizar condiciones
 
+**Documentación** 
+Solo esta la estructura, aun no tiene nada
 
-Actualmente permite realizar operaciones numericas int, float y arroja errores con otro tipo de inputs, creación de condiciones
-
-Ya se pueden realizar funciones y leer archivos. Asies 
-
-
-**GUI** 
+**GUI**  Sigue en desarrollo 
 Será la interfaz grafica para el lenguage
 Actualmente puede abrir archivos, guardarlos, crear nuevos
 Falta: 

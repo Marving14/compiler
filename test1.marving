@@ -1,9 +1,14 @@
-module par(numero);
-    var a = 5;
-    for i=0 to 7 step 2 then
-        PRINT(message)
-    end
-end
 
 
-printMesaggeX2("como tas")
+
+
+
+%%module par(numero);
+%%    var a = 5;
+%%    for i=0 to 7 step 2 then
+ %%       write(message)
+  %%  end
+%%end
+
+
+%%printMesaggeX2("como tas")

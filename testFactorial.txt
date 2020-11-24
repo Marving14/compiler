@@ -1,0 +1,34 @@
+program factorial;
+
+module fact(num):
+    %%write(num)
+    var acum=1; 
+    for i=1 to num+1 do:
+        acum = acum*i
+        %%write(acum)
+    endFor;
+    return acum;
+end
+
+module recursivo(num):
+    if num >= 1 then:
+        return num * recursivo(num-1)
+    else:
+        return 1
+    end
+end
+
+
+main(){
+    write("Escriba numero entero")
+    var ask = read_int()
+
+
+    %% TEST CYCLIC
+    %% write(fact(ask))
+
+    %% TEST RECURSIVE 
+    %% write(recursivo(ask))
+
+
+}
