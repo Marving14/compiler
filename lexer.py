@@ -1984,11 +1984,6 @@ class BuiltInFunction(BaseFunction):
     print(str(exec_ctx.symbol_table.get('value')))
     return RTResult().success(Number.null)
   execute_write.arg_names = ['value']
-
-  def execute_write(self, exec_ctx):
-    print(str(exec_ctx.symbol_table.get('value')), str(exec_ctx.symbol_table.get('value2')))
-    return RTResult().success(Number.null)
-  execute_write.arg_names = ['value', 'value2']
   
   def execute_read(self, exec_ctx):
     text = input()
