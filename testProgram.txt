@@ -18,7 +18,6 @@ module mod2():
     write("end of module mod 2 ")
 end
 
-
 main(){
     var a =8;
 

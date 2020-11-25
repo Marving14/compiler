@@ -17,8 +17,6 @@ module recursivo(num):
         return 1
     end
 end
-
-
 main(){
     write("Escriba numero entero")
     var ask = read_int()
@@ -29,6 +27,5 @@ main(){
 
     %% TEST RECURSIVE 
     %% write(recursivo(ask))
-
 
 }
