@@ -1,0 +1,32 @@
+program nombre_programa;
+
+
+module graphics(num):
+    var n = num +1; 
+    turtlecolor("blue")
+
+    circle(50); 
+    bgcolor("green");
+
+    for i=0 to 4 do:
+        penup(); 
+        forward(50); 
+        stamp();
+        pendown(); 
+
+    endFor
+
+    if n>4 then:
+        turtleclear()
+    end 
+
+    square(50);
+    turtleundo(); 
+    left(30)
+    graphics(n);  
+end
+
+main(){
+
+    graphics(0)
+}

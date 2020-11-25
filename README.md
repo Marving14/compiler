@@ -14,7 +14,16 @@ Archivo **lexer.py** contiene datos de analizador lexico, interprete y manejo de
 **Ya** se pueden realizar condiciones
 
 **Documentación** 
-Solo esta la estructura, aun no tiene nada
+Completa
+https://docs.google.com/document/d/1ROdtdO-OsL0NrP5HkB0zs2mSTgPnjdpQ3s6Pe7Uze18/edit?usp=sharing
+
+**Video**
+https://drive.google.com/file/d/1_o4CnCRPxaoBQ7Bl15NTUgU4cE-ChO2I/view?usp=sharing
+
+
+**Manual de usuario**
+https://docs.google.com/document/d/1xZltVHRRgnzGTqBOg0vX_F4s2GnweyzzK1j4lVa6L3k/edit?usp=sharing
+
 
 **GUI**  Sigue en desarrollo 
 Será la interfaz grafica para el lenguage

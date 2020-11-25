@@ -1882,7 +1882,7 @@ class BaseFunction(Value):
 
   def generate_new_context(self):
     new_context = Context(self.name, self.context, self.pos_start)
-    new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+    new_context.symbol_stack = SymbolStack(new_context.parent.symbol_stack)
     return new_context
 
   def check_args(self, arg_names, args):
@@ -1909,7 +1909,7 @@ class BaseFunction(Value):
       arg_name = arg_names[i]
       arg_value = args[i]
       arg_value.set_context(exec_ctx)
-      exec_ctx.symbol_table.set(arg_name, arg_value)
+      exec_ctx.symbol_stack.set(arg_name, arg_value)
 
   def check_and_populate_args(self, arg_names, args, exec_ctx):
     res = RTResult()
@@ -1981,7 +1981,7 @@ class BuiltInFunction(BaseFunction):
 
   #####################################
   def execute_write(self, exec_ctx):
-    print(str(exec_ctx.symbol_table.get('value')))
+    print(str(exec_ctx.symbol_stack.get('value')))
     return RTResult().success(Number.null)
   execute_write.arg_names = ['value']
   
@@ -2007,28 +2007,28 @@ class BuiltInFunction(BaseFunction):
   execute_clear.arg_names = []
 
   def execute_is_number(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), Number)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), Number)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_number.arg_names = ["value"]
 
   def execute_is_string(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), String)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), String)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_string.arg_names = ["value"]
 
   def execute_is_list(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), List)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), List)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_list.arg_names = ["value"]
 
   def execute_is_module(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), BaseFunction)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), BaseFunction)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_module.arg_names = ["value"]
 
   def execute_append(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
-    value = exec_ctx.symbol_table.get("value")
+    list_ = exec_ctx.symbol_stack.get("list")
+    value = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -2042,8 +2042,8 @@ class BuiltInFunction(BaseFunction):
   execute_append.arg_names = ["list", "value"]
 
   def execute_pop(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
-    index = exec_ctx.symbol_table.get("index")
+    list_ = exec_ctx.symbol_stack.get("list")
+    index = exec_ctx.symbol_stack.get("index")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -2071,8 +2071,8 @@ class BuiltInFunction(BaseFunction):
   execute_pop.arg_names = ["list", "index"]
 
   def execute_extend(self, exec_ctx):
-    listA = exec_ctx.symbol_table.get("listA")
-    listB = exec_ctx.symbol_table.get("listB")
+    listA = exec_ctx.symbol_stack.get("listA")
+    listB = exec_ctx.symbol_stack.get("listB")
 
     if not isinstance(listA, List):
       return RTResult().failure(RTError(
@@ -2093,7 +2093,7 @@ class BuiltInFunction(BaseFunction):
   execute_extend.arg_names = ["listA", "listB"]
 
   def execute_len(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
+    list_ = exec_ctx.symbol_stack.get("list")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -2106,7 +2106,7 @@ class BuiltInFunction(BaseFunction):
   execute_len.arg_names = ["list"]
 
   def execute_run(self, exec_ctx):
-    fn = exec_ctx.symbol_table.get("fn")
+    fn = exec_ctx.symbol_stack.get("fn")
 
     if not isinstance(fn, String):
       return RTResult().failure(RTError(
@@ -2142,9 +2142,9 @@ class BuiltInFunction(BaseFunction):
 
   ############################################################################
   def execute_set(self, exec_ctx):
-    listA = exec_ctx.symbol_table.get("listA")
-    index = exec_ctx.symbol_table.get("index")
-    value = exec_ctx.symbol_table.get("value")
+    listA = exec_ctx.symbol_stack.get("listA")
+    index = exec_ctx.symbol_stack.get("index")
+    value = exec_ctx.symbol_stack.get("value")
 
 
     if not isinstance(listA, List):
@@ -2190,7 +2190,7 @@ class BuiltInFunction(BaseFunction):
   
   #########################################################################
   def execute_circle(self, exec_ctx):
-    radius = exec_ctx.symbol_table.get("value")
+    radius = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(radius, Number):
       return RTResult().failure(RTError(
@@ -2206,7 +2206,7 @@ class BuiltInFunction(BaseFunction):
   execute_circle.arg_names = ["value"]
 
   def execute_square(self, exec_ctx):
-    sq = exec_ctx.symbol_table.get("value")
+    sq = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(sq, Number):
       return RTResult().failure(RTError(
@@ -2222,7 +2222,7 @@ class BuiltInFunction(BaseFunction):
   execute_square.arg_names = ["value"]
 
   def execute_dot(self, exec_ctx):
-    dot = exec_ctx.symbol_table.get("value")
+    dot = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(dot, Number):
       return RTResult().failure(RTError(
@@ -2248,7 +2248,7 @@ class BuiltInFunction(BaseFunction):
   execute_pendown.arg_names = []
 
   def execute_forward(self, exec_ctx):
-    distance = exec_ctx.symbol_table.get("value")
+    distance = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(distance, Number):
       return RTResult().failure(RTError(
@@ -2264,7 +2264,7 @@ class BuiltInFunction(BaseFunction):
   execute_forward.arg_names = ["value"]
 
   def execute_backward(self, exec_ctx):
-    distance = exec_ctx.symbol_table.get("value")
+    distance = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(distance, Number):
       return RTResult().failure(RTError(
@@ -2280,7 +2280,7 @@ class BuiltInFunction(BaseFunction):
   execute_backward.arg_names = ["value"]
 
   def execute_right(self, exec_ctx):
-    angle = exec_ctx.symbol_table.get("value")
+    angle = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(angle, Number):
       return RTResult().failure(RTError(
@@ -2296,7 +2296,7 @@ class BuiltInFunction(BaseFunction):
   execute_right.arg_names = ["value"]
 
   def execute_left(self, exec_ctx):
-    angle = exec_ctx.symbol_table.get("value")
+    angle = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(angle, Number):
       return RTResult().failure(RTError(
@@ -2312,8 +2312,8 @@ class BuiltInFunction(BaseFunction):
   execute_left.arg_names = ["value"]
 
   def execute_goto(self, exec_ctx):
-    x = exec_ctx.symbol_table.get("x")
-    y = exec_ctx.symbol_table.get("y")
+    x = exec_ctx.symbol_stack.get("x")
+    y = exec_ctx.symbol_stack.get("y")
 
     if not isinstance(x, Number):
       return RTResult().failure(RTError(
@@ -2342,7 +2342,7 @@ class BuiltInFunction(BaseFunction):
   execute_home.arg_names = []
 
   def execute_bgcolor(self, exec_ctx):
-    color = exec_ctx.symbol_table.get("value")
+    color = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(color, String):
       return RTResult().failure(RTError(
@@ -2357,7 +2357,7 @@ class BuiltInFunction(BaseFunction):
   execute_bgcolor.arg_names = ["value"]
 
   def execute_turtlecolor(self, exec_ctx):
-    color = exec_ctx.symbol_table.get("value")
+    color = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(color, String):
       return RTResult().failure(RTError(
@@ -2372,7 +2372,7 @@ class BuiltInFunction(BaseFunction):
   execute_turtlecolor.arg_names = ["value"]
 
   def execute_title(self, exec_ctx):
-    title = exec_ctx.symbol_table.get("value")
+    title = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(title, String):
       return RTResult().failure(RTError(
@@ -2387,7 +2387,7 @@ class BuiltInFunction(BaseFunction):
   execute_title.arg_names = ["value"]
 
   def execute_pensize(self, exec_ctx):
-    size = exec_ctx.symbol_table.get("value")
+    size = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(size, Number):
       return RTResult().failure(RTError(
@@ -2479,13 +2479,13 @@ class Context:
     self.display_name = display_name
     self.parent = parent
     self.parent_entry_pos = parent_entry_pos
-    self.symbol_table = None
+    self.symbol_stack = None
 
 #######################################
 # SYMBOL TABLE
 #######################################
 
-class SymbolTable:
+class SymbolStack:
   def __init__(self, parent=None):
     self.symbols = {}
     self.parent = parent
@@ -2552,7 +2552,7 @@ class Interpreter:
   def visit_VarAccessNode(self, node, context):
     res = RTResult()
     var_name = node.var_name_tok.value
-    value = context.symbol_table.get(var_name)
+    value = context.symbol_stack.get(var_name)
 
     if not value:
       return res.failure(RTError(
@@ -2571,8 +2571,8 @@ class Interpreter:
     value = res.register(self.visit(node.value_node, context))
     if res.should_return(): return res
 
-    #if context.symbol_table.exists(var_name):
-    context.symbol_table.set(var_name, value)
+    #if context.symbol_stack.exists(var_name):
+    context.symbol_stack.set(var_name, value)
     return res.success(value)
 
 
@@ -2582,7 +2582,7 @@ class Interpreter:
     value = res.register(self.visit(node.value_node, context))
     if res.should_return(): return res
 
-    context.symbol_table.set(var_name, value)
+    context.symbol_stack.set(var_name, value)
     return res.success(value)
 
   def visit_BinOpNode(self, node, context):
@@ -2716,7 +2716,7 @@ class Interpreter:
       condition = lambda: i > end_value.value
     
     while condition():
-      context.symbol_table.set(node.var_name_tok.value, Number(i))
+      context.symbol_stack.set(node.var_name_tok.value, Number(i))
       i += step_value.value
 
       value = res.register(self.visit(node.body_node, context))
@@ -2772,7 +2772,7 @@ class Interpreter:
     func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
     if node.var_name_tok:
-      context.symbol_table.set(func_name, func_value)
+      context.symbol_stack.set(func_name, func_value)
 
     return res.success(func_value)
 
@@ -2814,44 +2814,44 @@ class Interpreter:
 # RUN
 #######################################
 
-global_symbol_table = SymbolTable()
-global_symbol_table.set("NULL", Number.null)
-global_symbol_table.set("FALSE", Number.false)
-global_symbol_table.set("TRUE", Number.true)
-global_symbol_table.set("write", BuiltInFunction.write)
-global_symbol_table.set("read", BuiltInFunction.read)
-global_symbol_table.set("read_int", BuiltInFunction.read_int)
-global_symbol_table.set("CLEAR", BuiltInFunction.clear)
-global_symbol_table.set("CLS", BuiltInFunction.clear)
-global_symbol_table.set("IS_NUM", BuiltInFunction.is_number)
-global_symbol_table.set("IS_STR", BuiltInFunction.is_string)
-global_symbol_table.set("IS_LIST", BuiltInFunction.is_list)
-global_symbol_table.set("IS_MODULE", BuiltInFunction.is_module)
-global_symbol_table.set("APPEND", BuiltInFunction.append)
-global_symbol_table.set("POP", BuiltInFunction.pop)
-global_symbol_table.set("EXTEND", BuiltInFunction.extend)
-global_symbol_table.set("len", BuiltInFunction.len)
-global_symbol_table.set("set", BuiltInFunction.set)
-global_symbol_table.set("RUN", BuiltInFunction.run)
-global_symbol_table.set("circle", BuiltInFunction.circle)
-global_symbol_table.set("square", BuiltInFunction.square)
-global_symbol_table.set("dot", BuiltInFunction.dot)
-global_symbol_table.set("penup", BuiltInFunction.penup)
-global_symbol_table.set("pendown", BuiltInFunction.pendown)
-global_symbol_table.set("forward", BuiltInFunction.forward)
-global_symbol_table.set("backward", BuiltInFunction.backward)
-global_symbol_table.set("right", BuiltInFunction.right)
-global_symbol_table.set("left", BuiltInFunction.left)
-global_symbol_table.set("home", BuiltInFunction.home)
-global_symbol_table.set("goto", BuiltInFunction.goto)
-global_symbol_table.set("bgcolor", BuiltInFunction.bgcolor)
-global_symbol_table.set("turtlecolor", BuiltInFunction.turtlecolor)
-global_symbol_table.set("title", BuiltInFunction.title)
-global_symbol_table.set("pensize", BuiltInFunction.pensize)
-global_symbol_table.set("turtleundo", BuiltInFunction.turtleundo)
-global_symbol_table.set("turtleclear", BuiltInFunction.turtleclear)
-global_symbol_table.set("turtlereset", BuiltInFunction.turtlereset)
-global_symbol_table.set("stamp", BuiltInFunction.stamp)
+global_symbol_stack = SymbolStack()
+global_symbol_stack.set("NULL", Number.null)
+global_symbol_stack.set("FALSE", Number.false)
+global_symbol_stack.set("TRUE", Number.true)
+global_symbol_stack.set("write", BuiltInFunction.write)
+global_symbol_stack.set("read", BuiltInFunction.read)
+global_symbol_stack.set("read_int", BuiltInFunction.read_int)
+global_symbol_stack.set("CLEAR", BuiltInFunction.clear)
+global_symbol_stack.set("CLS", BuiltInFunction.clear)
+global_symbol_stack.set("IS_NUM", BuiltInFunction.is_number)
+global_symbol_stack.set("IS_STR", BuiltInFunction.is_string)
+global_symbol_stack.set("IS_LIST", BuiltInFunction.is_list)
+global_symbol_stack.set("IS_MODULE", BuiltInFunction.is_module)
+global_symbol_stack.set("APPEND", BuiltInFunction.append)
+global_symbol_stack.set("POP", BuiltInFunction.pop)
+global_symbol_stack.set("EXTEND", BuiltInFunction.extend)
+global_symbol_stack.set("len", BuiltInFunction.len)
+global_symbol_stack.set("set", BuiltInFunction.set)
+global_symbol_stack.set("RUN", BuiltInFunction.run)
+global_symbol_stack.set("circle", BuiltInFunction.circle)
+global_symbol_stack.set("square", BuiltInFunction.square)
+global_symbol_stack.set("dot", BuiltInFunction.dot)
+global_symbol_stack.set("penup", BuiltInFunction.penup)
+global_symbol_stack.set("pendown", BuiltInFunction.pendown)
+global_symbol_stack.set("forward", BuiltInFunction.forward)
+global_symbol_stack.set("backward", BuiltInFunction.backward)
+global_symbol_stack.set("right", BuiltInFunction.right)
+global_symbol_stack.set("left", BuiltInFunction.left)
+global_symbol_stack.set("home", BuiltInFunction.home)
+global_symbol_stack.set("goto", BuiltInFunction.goto)
+global_symbol_stack.set("bgcolor", BuiltInFunction.bgcolor)
+global_symbol_stack.set("turtlecolor", BuiltInFunction.turtlecolor)
+global_symbol_stack.set("title", BuiltInFunction.title)
+global_symbol_stack.set("pensize", BuiltInFunction.pensize)
+global_symbol_stack.set("turtleundo", BuiltInFunction.turtleundo)
+global_symbol_stack.set("turtleclear", BuiltInFunction.turtleclear)
+global_symbol_stack.set("turtlereset", BuiltInFunction.turtlereset)
+global_symbol_stack.set("stamp", BuiltInFunction.stamp)
 
 
 
@@ -2870,7 +2870,7 @@ def run(fn, text):
   # Run program
   interpreter = Interpreter()
   context = Context('<program>')
-  context.symbol_table = global_symbol_table
+  context.symbol_stack = global_symbol_stack
   result = interpreter.visit(ast.node, context)
 
   start_Turtle()
