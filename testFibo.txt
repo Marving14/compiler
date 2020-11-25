@@ -1,0 +1,62 @@
+program fibonacci;
+
+%% RUN("testFibo.txt")
+
+module fibo(num):
+    var digits = [0,1];
+
+    var n1=0; var n2=1; var n3=0; var i=0;
+
+    for j = 2 to num do:
+        n3= n1+n2;
+        digits = digits + n3;
+        n1=n2;
+        n2=n3; 
+    endFor
+    %%write(digits)
+    return digits;
+end 
+
+
+module recursivo(n1, n2, n3, num, list):
+    if num > 0 then:
+        n3 = n2 + n1;
+        list = list + n3;
+        n1 = n2;
+        n2 = n3;
+        return recursivo(n1,n2,n3, num-1, list)
+    else: 
+        return list;
+    end
+end
+
+main(){
+    %% CYCLIC VERSION
+    var list = []
+
+    write("Escriba cantidad de numeros fibo")
+    var ask = read_int()
+
+    if ask == 0 then:
+        write("No se puede calcular el elemento 0 :) ")
+    end
+    if ask == 1 then:
+        list = list+0;
+    end
+    if ask == 2 then:
+        list = list + 0 + 1;
+    end
+    if ask > 2 then:
+        %%  CYCLIC
+%%        list = fibo(ask);
+
+        %% RECURSIVE
+        list = list + 0 + 1
+        list = recursivo(0, 1, 1, ask-2, list);
+    end
+
+    write(list)
+    
+    %% TEST FIND
+    
+}

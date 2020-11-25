@@ -5,12 +5,50 @@ from string_with_arrows import *
 import string
 import os
 import math
+import turtle
+import random
+
+#######################################
+# TURTLE 
+#######################################
+
+global screen
+screen = None 
+global aTurtle
+aTurtle = turtle.Turtle() 
+
+def start_Turtle():
+  screen = turtle.getscreen() 
+  
+
+
+
+#######################################
+# TURTLE FUNCTIONS
+#######################################
+def turtle_square(side):
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+  aTurtle.rt(90)
+  aTurtle.fd(side)
+
+def turtle_circle(radius):
+  aTurtle.circle(radius)
+
+def turtle_dot(diameter):
+  aTurtle.dot(diameter)
+
+
 #######################################
 # CONSTANTS
 #######################################
 DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
+
 #######################################
 # ERRORS
 #######################################
@@ -89,8 +127,8 @@ class Position:
 #######################################
 # TOKENS
 #######################################
-TT_INT				= 'INT'
-TT_FLOAT    	= 'FLOAT'
+TT_INT				= 'int'
+TT_FLOAT    	= 'float'
 TT_STRING			= 'STRING'
 TT_IDENTIFIER	= 'IDENTIFIER'
 TT_KEYWORD		= 'KEYWORD'
@@ -104,6 +142,9 @@ TT_LPAREN   	= 'LPAREN'
 TT_RPAREN   	= 'RPAREN'
 TT_LSQUARE    = 'LSQUARE'
 TT_RSQUARE    = 'RSQUARE'
+TT_LBRACE     = 'LBRACE'
+TT_RBRACE     = 'RBRACE'
+TT_SEMMICOLOM = 'SEMMICOLOM'
 TT_EE					= 'EE'
 TT_NE					= 'NE'
 TT_LT					= 'LT'
@@ -114,26 +155,43 @@ TT_COMMA			= 'COMMA'
 TT_ARROW			= 'ARROW'
 TT_NEWLINE		= 'NEWLINE'
 TT_EOF				= 'EOF'
+TT_FUNCLINE   = 'FUNCLINE'
+
+
 
 KEYWORDS = [
-  'VAR',
-  'AND',
-  'OR',
-  'NOT',
-  'IF',
-  'ELIF',
-  'ELSE',
-  'FOR',
-  'TO',
-  'STEP',
-  'WHILE',
-  'FUN',
-  'THEN',
-  'END',
-  'RETURN',
-  'CONTINUE',
-  'BREAK',
+  'program',
+  'main',
+  'var',
+  'and',
+  'or',
+  'not',
+  'if',
+  'elif',
+  'else',
+  'for',
+  'to',
+  'step',
+  'while',
+  'module',
+  'then',
+  'end',
+  'return',
+  'continue',
+  'break',
+  'do',
+  'endFor'
 ]
+
+TYPES = [
+  'int',
+  'float',
+  'char',
+  'string',
+  'void'
+]
+
+
 
 class Token:
   def __init__(self, type_, value=None, pos_start=None, pos_end=None):
@@ -177,10 +235,13 @@ class Lexer:
     while self.current_char != None:
       if self.current_char in ' \t':
         self.advance()
-      elif self.current_char == '#':
+      elif self.current_char == '%':
         self.skip_comment()
       elif self.current_char in ';\n':
         tokens.append(Token(TT_NEWLINE, pos_start=self.pos))
+        self.advance()
+      elif self.current_char in ':\n':
+        tokens.append(Token(TT_FUNCLINE, pos_start=self.pos))
         self.advance()
       elif self.current_char in DIGITS:
         tokens.append(self.make_number())
@@ -213,6 +274,12 @@ class Lexer:
         self.advance()
       elif self.current_char == ']':
         tokens.append(Token(TT_RSQUARE, pos_start=self.pos))
+        self.advance()
+      elif self.current_char == '{':
+        tokens.append(Token(TT_LBRACE, pos_start=self.pos))
+        self.advance()
+      elif self.current_char == '}':
+        tokens.append(Token(TT_RBRACE, pos_start=self.pos))
         self.advance()
       elif self.current_char == '!':
         token, error = self.make_not_equals()
@@ -347,8 +414,11 @@ class Lexer:
   def skip_comment(self):
     self.advance()
 
-    while self.current_char != '\n':
-      self.advance()
+    if self.current_char =='%':
+      while self.current_char != '\n':
+        self.advance()
+    else:
+      return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
 
     self.advance()
 
@@ -383,12 +453,30 @@ class ListNode:
     self.pos_start = pos_start
     self.pos_end = pos_end
 
+class RemakeListNode:
+  def __init__(self, element_nodes, index, new_element, pos_start, pos_end):
+    self.element_nodes = element_nodes
+    self.element_nodes.insert(index, new_element)
+
+    self.pos_start = pos_start
+    self.pos_end = pos_end
+
+
 class VarAccessNode:
   def __init__(self, var_name_tok):
     self.var_name_tok = var_name_tok
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.var_name_tok.pos_end
+
+class VarReAssignNode:
+  def __init__(self, var_name_tok, value_node):
+    self.var_name_tok = var_name_tok
+    self.value_node = value_node
+
+    self.pos_start = self.var_name_tok.pos_start
+    self.pos_end = self.value_node.pos_end
+
 
 class VarAssignNode:
   def __init__(self, var_name_tok, value_node):
@@ -428,6 +516,25 @@ class IfNode:
 
     self.pos_start = self.cases[0][0].pos_start
     self.pos_end = (self.else_case or self.cases[len(self.cases) - 1])[0].pos_end
+
+class MainNode:
+  def __init__(self, body_node, should_return_null):
+    self.body_node = body_node
+    self.should_return_null = should_return_null
+
+   
+    self.pos_start = self.body_node.pos_start
+    self.pos_end = self.body_node.pos_end
+
+
+class ProgramNode:
+  def __init__(self, program_name, body_node, should_return_null):
+    self.program_name =  program_name
+    self.body_node = body_node
+    self.should_return_null = should_return_null
+
+    self.pos_start = self.body_node.pos_start
+    self.pos_end = self.body_node.pos_end
 
 class ForNode:
   def __init__(self, var_name_tok, start_value_node, end_value_node, step_value_node, body_node, should_return_null):
@@ -478,7 +585,7 @@ class CallNode:
     else:
       self.pos_end = self.node_to_call.pos_end
 
-class ReturnNode:
+class returnNode:
   def __init__(self, node_to_return, pos_start, pos_end):
     self.node_to_return = node_to_return
 
@@ -541,6 +648,11 @@ class Parser:
     self.tokens = tokens
     self.tok_idx = -1
     self.advance()
+  
+  def update_current_tok(self):
+    if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
+      self.current_tok = self.tokens[self.tok_idx]
+      
 
   def advance(self):
     self.tok_idx += 1
@@ -551,10 +663,6 @@ class Parser:
     self.tok_idx -= amount
     self.update_current_tok()
     return self.current_tok
-
-  def update_current_tok(self):
-    if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
-      self.current_tok = self.tokens[self.tok_idx]
 
   def parse(self):
     res = self.statements()
@@ -605,25 +713,27 @@ class Parser:
       self.current_tok.pos_end.copy()
     ))
 
+
   def statement(self):
     res = ParseResult()
     pos_start = self.current_tok.pos_start.copy()
 
-    if self.current_tok.matches(TT_KEYWORD, 'RETURN'):
+    if self.current_tok.matches(TT_KEYWORD, 'return'):
       res.register_advancement()
       self.advance()
 
       expr = res.try_register(self.expr())
       if not expr:
         self.reverse(res.to_reverse_count)
-      return res.success(ReturnNode(expr, pos_start, self.current_tok.pos_start.copy()))
+      return res.success(returnNode(expr, pos_start, self.current_tok.pos_start.copy()))
     
-    if self.current_tok.matches(TT_KEYWORD, 'CONTINUE'):
+    # remove
+    if self.current_tok.matches(TT_KEYWORD, 'continue'):
       res.register_advancement()
       self.advance()
       return res.success(ContinueNode(pos_start, self.current_tok.pos_start.copy()))
       
-    if self.current_tok.matches(TT_KEYWORD, 'BREAK'):
+    if self.current_tok.matches(TT_KEYWORD, 'break'):
       res.register_advancement()
       self.advance()
       return res.success(BreakNode(pos_start, self.current_tok.pos_start.copy()))
@@ -632,14 +742,16 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'RETURN', 'CONTINUE', 'BREAK', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'return', 'continue', 'break', 'var', 'if', 'for', 'while', 'module', 'int', 'float', 'identifier', '+', '-', '(', '[' or 'not'"
       ))
     return res.success(expr)
+
+
 
   def expr(self):
     res = ParseResult()
 
-    if self.current_tok.matches(TT_KEYWORD, 'VAR'):
+    if self.current_tok.matches(TT_KEYWORD, 'var'):
       res.register_advancement()
       self.advance()
 
@@ -665,12 +777,12 @@ class Parser:
       if res.error: return res
       return res.success(VarAssignNode(var_name, expr))
 
-    node = res.register(self.bin_op(self.comp_expr, ((TT_KEYWORD, 'AND'), (TT_KEYWORD, 'OR'))))
+    node = res.register(self.bin_op(self.comp_expr, ((TT_KEYWORD, 'and'), (TT_KEYWORD, 'or'))))
 
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
       ))
 
     return res.success(node)
@@ -678,7 +790,7 @@ class Parser:
   def comp_expr(self):
     res = ParseResult()
 
-    if self.current_tok.matches(TT_KEYWORD, 'NOT'):
+    if self.current_tok.matches(TT_KEYWORD, 'not'):
       op_tok = self.current_tok
       res.register_advancement()
       self.advance()
@@ -692,7 +804,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected int, float, identifier, '+', '-', '(', '[', 'IF', 'FOR', 'WHILE', 'FUN' or 'NOT'"
+        "Expected int, float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', 'module' or 'not'"
       ))
 
     return res.success(node)
@@ -737,7 +849,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected ')', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+            "Expected ')', 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
           ))
 
         while self.current_tok.type == TT_COMMA:
@@ -761,6 +873,8 @@ class Parser:
   def atom(self):
     res = ParseResult()
     tok = self.current_tok
+    element_nodes = []
+    pos_start = self.current_tok.pos_start.copy()
 
     if tok.type in (TT_INT, TT_FLOAT):
       res.register_advancement()
@@ -773,8 +887,45 @@ class Parser:
       return res.success(StringNode(tok))
 
     elif tok.type == TT_IDENTIFIER:
+      var_name = self.current_tok
+
       res.register_advancement()
       self.advance()
+
+      ########################### ident Time
+
+      #if self.current_tok.type == TT_IDENTIFIER:
+      if self.current_tok.type == TT_EQ: 
+        #var_name = self.current_tok
+        res.register_advancement()
+        self.advance()
+
+        expr = res.register(self.expr())
+        if res.error: return res
+        return res.success(VarAssignNode(var_name, expr))
+        node = res.register(self.bin_op(self.comp_expr, ((TT_KEYWORD, 'and'), (TT_KEYWORD, 'or'))))
+
+        if res.error:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
+          ))
+
+        return res.success(node)
+        
+      ###################################
+
+
+
+
+
+
+
+
+
+      ###################################
+      #res.register_advancement()
+      #self.advance()
       return res.success(VarAccessNode(tok))
 
     elif tok.type == TT_LPAREN:
@@ -797,29 +948,37 @@ class Parser:
       if res.error: return res
       return res.success(list_expr)
     
-    elif tok.matches(TT_KEYWORD, 'IF'):
+    elif tok.matches(TT_KEYWORD, 'if'):
       if_expr = res.register(self.if_expr())
       if res.error: return res
       return res.success(if_expr)
 
-    elif tok.matches(TT_KEYWORD, 'FOR'):
+    elif tok.matches(TT_KEYWORD, 'for'):
       for_expr = res.register(self.for_expr())
       if res.error: return res
       return res.success(for_expr)
 
-    elif tok.matches(TT_KEYWORD, 'WHILE'):
+    elif tok.matches(TT_KEYWORD, 'while'):
       while_expr = res.register(self.while_expr())
       if res.error: return res
       return res.success(while_expr)
 
-    elif tok.matches(TT_KEYWORD, 'FUN'):
+    elif tok.matches(TT_KEYWORD, 'module'):
       func_def = res.register(self.func_def())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'program'):
+      func_def = res.register(self.program_expr())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'main'):
+      func_def = res.register(self.main_expr())
       if res.error: return res
       return res.success(func_def)
 
     return res.failure(InvalidSyntaxError(
       tok.pos_start, tok.pos_end,
-      "Expected int, float, identifier, '+', '-', '(', '[', IF', 'FOR', 'WHILE', 'FUN'"
+      "Expected int, float, identifier, '+', '-', '(', '[', if', 'for', 'while', 'module'"
     ))
 
   def list_expr(self):
@@ -844,7 +1003,7 @@ class Parser:
       if res.error:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected ']', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+          "Expected ']', 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
         ))
 
       while self.current_tok.type == TT_COMMA:
@@ -871,11 +1030,12 @@ class Parser:
 
   def if_expr(self):
     res = ParseResult()
-    all_cases = res.register(self.if_expr_cases('IF'))
+    all_cases = res.register(self.if_expr_cases('if'))
     if res.error: return res
     cases, else_case = all_cases
     return res.success(IfNode(cases, else_case))
 
+  # remove
   def if_expr_b(self):
     return self.if_expr_cases('ELIF')
     
@@ -883,11 +1043,11 @@ class Parser:
     res = ParseResult()
     else_case = None
 
-    if self.current_tok.matches(TT_KEYWORD, 'ELSE'):
+    if self.current_tok.matches(TT_KEYWORD, 'else'):
       res.register_advancement()
       self.advance()
 
-      if self.current_tok.type == TT_NEWLINE:
+      if self.current_tok.type == TT_FUNCLINE:
         res.register_advancement()
         self.advance()
 
@@ -895,14 +1055,15 @@ class Parser:
         if res.error: return res
         else_case = (statements, True)
 
-        if self.current_tok.matches(TT_KEYWORD, 'END'):
+        if self.current_tok.matches(TT_KEYWORD, 'end'):
           res.register_advancement()
           self.advance()
         else:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected 'END'"
+            "Expected 'end'"
           ))
+      # Case there is no else 
       else:
         expr = res.register(self.statement())
         if res.error: return res
@@ -914,7 +1075,8 @@ class Parser:
     res = ParseResult()
     cases, else_case = [], None
 
-    if self.current_tok.matches(TT_KEYWORD, 'ELIF'):
+    # remove 
+    if self.current_tok.matches(TT_KEYWORD, 'elif'):
       all_cases = res.register(self.if_expr_b())
       if res.error: return res
       cases, else_case = all_cases
@@ -941,16 +1103,16 @@ class Parser:
     condition = res.register(self.expr())
     if res.error: return res
 
-    if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+    if not self.current_tok.matches(TT_KEYWORD, 'then'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'THEN'"
+        f"Expected 'then'"
       ))
 
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_NEWLINE:
+    if self.current_tok.type == TT_FUNCLINE:
       res.register_advancement()
       self.advance()
 
@@ -958,7 +1120,7 @@ class Parser:
       if res.error: return res
       cases.append((condition, statements, True))
 
-      if self.current_tok.matches(TT_KEYWORD, 'END'):
+      if self.current_tok.matches(TT_KEYWORD, 'end'):
         res.register_advancement()
         self.advance()
       else:
@@ -978,13 +1140,121 @@ class Parser:
 
     return res.success((cases, else_case))
 
+
+  def main_expr(self):
+    res = ParseResult()
+
+    if not self.current_tok.matches(TT_KEYWORD, 'main'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected 'main'"
+      ))
+
+    res.register_advancement()
+    self.advance()
+
+    if not self.current_tok.type == TT_LPAREN:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected '('"
+      ))
+
+    res.register_advancement()
+    self.advance()
+
+    if not self.current_tok.type == TT_RPAREN:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected ')'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    sq1 = '{'
+    if not self.current_tok.type == TT_LBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected {sq1} "
+      ))
+
+    if self.current_tok.type == TT_LBRACE:
+      res.register_advancement()
+      self.advance()
+
+      body = res.register(self.statements())
+      if res.error: return res
+      sq = '}'
+
+      if not self.current_tok.type == TT_RBRACE:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected {sq}"
+        ))
+
+      res.register_advancement()
+      self.advance()
+
+      return res.success(MainNode(body, False))
+
+    body = res.register(self.statement())
+    if res.error: return res
+
+    return res.success(MainNode(body, False))
+
+  def program_expr(self):
+    res = ParseResult()
+
+    if not self.current_tok.matches(TT_KEYWORD, 'program'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected 'program'"
+      ))
+
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type != TT_IDENTIFIER:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected identifier"
+      ))
+    program_name = self.current_tok
+    
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type != TT_NEWLINE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected ';'"
+      ))
+
+    if self.current_tok.type == TT_NEWLINE:
+      res.register_advancement()
+      self.advance()
+
+      body = res.register(self.statements())
+      if res.error: return res
+
+      res.register_advancement()
+      self.advance()
+
+      return res.success(ProgramNode(program_name, body, False))
+    
+    body = res.register(self.statement())
+    if res.error: return res
+
+    return res.success(ProgramNode(program_name, body, False))
+      
+
   def for_expr(self):
     res = ParseResult()
 
-    if not self.current_tok.matches(TT_KEYWORD, 'FOR'):
+    if not self.current_tok.matches(TT_KEYWORD, 'for'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'FOR'"
+        f"Expected 'for'"
       ))
 
     res.register_advancement()
@@ -1012,10 +1282,10 @@ class Parser:
     start_value = res.register(self.expr())
     if res.error: return res
 
-    if not self.current_tok.matches(TT_KEYWORD, 'TO'):
+    if not self.current_tok.matches(TT_KEYWORD, 'to'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'TO'"
+        f"Expected 'to'"
       ))
     
     res.register_advancement()
@@ -1024,7 +1294,7 @@ class Parser:
     end_value = res.register(self.expr())
     if res.error: return res
 
-    if self.current_tok.matches(TT_KEYWORD, 'STEP'):
+    if self.current_tok.matches(TT_KEYWORD, 'step'):
       res.register_advancement()
       self.advance()
 
@@ -1033,26 +1303,26 @@ class Parser:
     else:
       step_value = None
 
-    if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+    if not self.current_tok.matches(TT_KEYWORD, 'do'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'THEN'"
+        f"Expected 'do'"
       ))
 
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_NEWLINE:
+    if self.current_tok.type == TT_FUNCLINE:
       res.register_advancement()
       self.advance()
 
       body = res.register(self.statements())
       if res.error: return res
 
-      if not self.current_tok.matches(TT_KEYWORD, 'END'):
+      if not self.current_tok.matches(TT_KEYWORD, 'endFor'):
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected 'END'"
+          f"Expected 'endFor'"
         ))
 
       res.register_advancement()
@@ -1068,10 +1338,10 @@ class Parser:
   def while_expr(self):
     res = ParseResult()
 
-    if not self.current_tok.matches(TT_KEYWORD, 'WHILE'):
+    if not self.current_tok.matches(TT_KEYWORD, 'while'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'WHILE'"
+        f"Expected 'while'"
       ))
 
     res.register_advancement()
@@ -1080,26 +1350,26 @@ class Parser:
     condition = res.register(self.expr())
     if res.error: return res
 
-    if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+    if not self.current_tok.matches(TT_KEYWORD, 'do'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'THEN'"
+        f"Expected 'do'"
       ))
 
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_NEWLINE:
+    if self.current_tok.type == TT_FUNCLINE:
       res.register_advancement()
       self.advance()
 
       body = res.register(self.statements())
       if res.error: return res
 
-      if not self.current_tok.matches(TT_KEYWORD, 'END'):
+      if not self.current_tok.matches(TT_KEYWORD, 'endWhile'):
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected 'END'"
+          f"Expected 'endWhile'"
         ))
 
       res.register_advancement()
@@ -1112,13 +1382,15 @@ class Parser:
 
     return res.success(WhileNode(condition, body, False))
 
+
+  # func_def espera module como input para crear una funcion o metodo 
   def func_def(self):
     res = ParseResult()
 
-    if not self.current_tok.matches(TT_KEYWORD, 'FUN'):
+    if not self.current_tok.matches(TT_KEYWORD, 'module'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'FUN'"
+        f"Expected 'module'"
       ))
 
     res.register_advancement()
@@ -1138,7 +1410,7 @@ class Parser:
       if self.current_tok.type != TT_LPAREN:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected identifier or '('"
+          f"Expected identifier "
         ))
     
     res.register_advancement()
@@ -1179,6 +1451,7 @@ class Parser:
     res.register_advancement()
     self.advance()
 
+    # remove 
     if self.current_tok.type == TT_ARROW:
       res.register_advancement()
       self.advance()
@@ -1193,10 +1466,10 @@ class Parser:
         True
       ))
     
-    if self.current_tok.type != TT_NEWLINE:
+    if self.current_tok.type != TT_FUNCLINE:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected '->' or NEWLINE"
+        f"Expected '->' or ':'"
       ))
 
     res.register_advancement()
@@ -1205,10 +1478,10 @@ class Parser:
     body = res.register(self.statements())
     if res.error: return res
 
-    if not self.current_tok.matches(TT_KEYWORD, 'END'):
+    if not self.current_tok.matches(TT_KEYWORD, 'end'):
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'END'"
+        f"Expected 'end'"
       ))
 
     res.register_advancement()
@@ -1485,19 +1758,19 @@ class Number(Value):
 Number.null = Number(0)
 Number.false = Number(0)
 Number.true = Number(1)
-Number.math_PI = Number(math.pi)
 
 class String(Value):
   def __init__(self, value):
     super().__init__()
     self.value = value
 
+  # concatena texto
   def added_to(self, other):
     if isinstance(other, String):
       return String(self.value + other.value).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
-
+  
   def multed_by(self, other):
     if isinstance(other, Number):
       return String(self.value * other.value).set_context(self.context), None
@@ -1523,12 +1796,19 @@ class List(Value):
   def __init__(self, elements):
     super().__init__()
     self.elements = elements
+  
+  def getElems(self):
+    return self.elements
+  
+  def getLen(self):
+    return len(self.elements)
 
+  # agregar elemento a lista
   def added_to(self, other):
     new_list = self.copy()
     new_list.elements.append(other)
     return new_list, None
-
+  # eliminar elm en N position 
   def subbed_by(self, other):
     if isinstance(other, Number):
       new_list = self.copy()
@@ -1538,12 +1818,13 @@ class List(Value):
       except:
         return None, RTError(
           other.pos_start, other.pos_end,
-          'Element at this index could not be removed from list because index is out of bounds',
+          'Index out of bounds',
           self.context
         )
     else:
       return None, Value.illegal_operation(self, other)
 
+  # concatena listas
   def multed_by(self, other):
     if isinstance(other, List):
       new_list = self.copy()
@@ -1551,7 +1832,9 @@ class List(Value):
       return new_list, None
     else:
       return None, Value.illegal_operation(self, other)
-
+  
+  # extract N elem from list
+  # Ya funciona Asies 
   def dived_by(self, other):
     if isinstance(other, Number):
       try:
@@ -1565,6 +1848,21 @@ class List(Value):
     else:
       return None, Value.illegal_operation(self, other)
   
+  def setElem(self, index, value):
+    if isinstance(index, Number):
+      try:
+          self.elements[index.value] = value.value
+          return self.elements[index.value], None
+      except:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Element at this index could not be retrieved from list because index is out of bounds',
+          self.context
+        )
+    else:
+      return None, Value.illegal_operation(self, index)
+      
+
   def copy(self):
     copy = List(self.elements)
     copy.set_pos(self.pos_start, self.pos_end)
@@ -1584,7 +1882,7 @@ class BaseFunction(Value):
 
   def generate_new_context(self):
     new_context = Context(self.name, self.context, self.pos_start)
-    new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+    new_context.symbol_stack = SymbolStack(new_context.parent.symbol_stack)
     return new_context
 
   def check_args(self, arg_names, args):
@@ -1593,14 +1891,14 @@ class BaseFunction(Value):
     if len(args) > len(arg_names):
       return res.failure(RTError(
         self.pos_start, self.pos_end,
-        f"{len(args) - len(arg_names)} too many args passed into {self}",
+        f"{len(args) - len(arg_names)} cantidad de parametros inesperados en {self}",
         self.context
       ))
     
     if len(args) < len(arg_names):
       return res.failure(RTError(
         self.pos_start, self.pos_end,
-        f"{len(arg_names) - len(args)} too few args passed into {self}",
+        f"{len(arg_names) - len(args)} faltan params en {self}",
         self.context
       ))
 
@@ -1611,7 +1909,7 @@ class BaseFunction(Value):
       arg_name = arg_names[i]
       arg_value = args[i]
       arg_value.set_context(exec_ctx)
-      exec_ctx.symbol_table.set(arg_name, arg_value)
+      exec_ctx.symbol_stack.set(arg_name, arg_value)
 
   def check_and_populate_args(self, arg_names, args, exec_ctx):
     res = RTResult()
@@ -1650,6 +1948,7 @@ class Function(BaseFunction):
   def __repr__(self):
     return f"<function {self.name}>"
 
+
 class BuiltInFunction(BaseFunction):
   def __init__(self, name):
     super().__init__(name)
@@ -1681,22 +1980,17 @@ class BuiltInFunction(BaseFunction):
     return f"<built-in function {self.name}>"
 
   #####################################
-
-  def execute_print(self, exec_ctx):
-    print(str(exec_ctx.symbol_table.get('value')))
+  def execute_write(self, exec_ctx):
+    print(str(exec_ctx.symbol_stack.get('value')))
     return RTResult().success(Number.null)
-  execute_print.arg_names = ['value']
+  execute_write.arg_names = ['value']
   
-  def execute_print_ret(self, exec_ctx):
-    return RTResult().success(String(str(exec_ctx.symbol_table.get('value'))))
-  execute_print_ret.arg_names = ['value']
-  
-  def execute_input(self, exec_ctx):
+  def execute_read(self, exec_ctx):
     text = input()
     return RTResult().success(String(text))
-  execute_input.arg_names = []
+  execute_read.arg_names = []
 
-  def execute_input_int(self, exec_ctx):
+  def execute_read_int(self, exec_ctx):
     while True:
       text = input()
       try:
@@ -1705,7 +1999,7 @@ class BuiltInFunction(BaseFunction):
       except ValueError:
         print(f"'{text}' must be an integer. Try again!")
     return RTResult().success(Number(number))
-  execute_input_int.arg_names = []
+  execute_read_int.arg_names = []
 
   def execute_clear(self, exec_ctx):
     os.system('cls' if os.name == 'nt' else 'cls') 
@@ -1713,28 +2007,28 @@ class BuiltInFunction(BaseFunction):
   execute_clear.arg_names = []
 
   def execute_is_number(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), Number)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), Number)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_number.arg_names = ["value"]
 
   def execute_is_string(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), String)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), String)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_string.arg_names = ["value"]
 
   def execute_is_list(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), List)
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), List)
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_list.arg_names = ["value"]
 
-  def execute_is_function(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_table.get("value"), BaseFunction)
+  def execute_is_module(self, exec_ctx):
+    is_number = isinstance(exec_ctx.symbol_stack.get("value"), BaseFunction)
     return RTResult().success(Number.true if is_number else Number.false)
-  execute_is_function.arg_names = ["value"]
+  execute_is_module.arg_names = ["value"]
 
   def execute_append(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
-    value = exec_ctx.symbol_table.get("value")
+    list_ = exec_ctx.symbol_stack.get("list")
+    value = exec_ctx.symbol_stack.get("value")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -1748,8 +2042,8 @@ class BuiltInFunction(BaseFunction):
   execute_append.arg_names = ["list", "value"]
 
   def execute_pop(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
-    index = exec_ctx.symbol_table.get("index")
+    list_ = exec_ctx.symbol_stack.get("list")
+    index = exec_ctx.symbol_stack.get("index")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -1777,8 +2071,8 @@ class BuiltInFunction(BaseFunction):
   execute_pop.arg_names = ["list", "index"]
 
   def execute_extend(self, exec_ctx):
-    listA = exec_ctx.symbol_table.get("listA")
-    listB = exec_ctx.symbol_table.get("listB")
+    listA = exec_ctx.symbol_stack.get("listA")
+    listB = exec_ctx.symbol_stack.get("listB")
 
     if not isinstance(listA, List):
       return RTResult().failure(RTError(
@@ -1799,7 +2093,7 @@ class BuiltInFunction(BaseFunction):
   execute_extend.arg_names = ["listA", "listB"]
 
   def execute_len(self, exec_ctx):
-    list_ = exec_ctx.symbol_table.get("list")
+    list_ = exec_ctx.symbol_stack.get("list")
 
     if not isinstance(list_, List):
       return RTResult().failure(RTError(
@@ -1812,7 +2106,7 @@ class BuiltInFunction(BaseFunction):
   execute_len.arg_names = ["list"]
 
   def execute_run(self, exec_ctx):
-    fn = exec_ctx.symbol_table.get("fn")
+    fn = exec_ctx.symbol_stack.get("fn")
 
     if not isinstance(fn, String):
       return RTResult().failure(RTError(
@@ -1846,20 +2140,335 @@ class BuiltInFunction(BaseFunction):
     return RTResult().success(Number.null)
   execute_run.arg_names = ["fn"]
 
-BuiltInFunction.print       = BuiltInFunction("print")
-BuiltInFunction.print_ret   = BuiltInFunction("print_ret")
-BuiltInFunction.input       = BuiltInFunction("input")
-BuiltInFunction.input_int   = BuiltInFunction("input_int")
+  ############################################################################
+  def execute_set(self, exec_ctx):
+    listA = exec_ctx.symbol_stack.get("listA")
+    index = exec_ctx.symbol_stack.get("index")
+    value = exec_ctx.symbol_stack.get("value")
+
+
+    if not isinstance(listA, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be list",
+        exec_ctx
+      ))
+    if not isinstance(value, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be number",
+        exec_ctx
+      ))
+    if not isinstance(index, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be number",
+        exec_ctx
+      ))
+
+    try:
+      #listA.elements.setElem(index.value, value.value)
+
+      #listA.elements[index.value] = value.value
+      co = listA.elements[index.value].copy()
+      #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
+      co.value = value.value
+      #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
+
+      listA.elements.pop(index.value)
+      listA.elements.insert(index.value, co)
+
+
+    except:
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        'Index fuera de limites de lista xd ',
+        exec_ctx
+      ))
+    return RTResult().success(Number.null)
+  execute_set.arg_names = ["listA", "index", "value"]
+  
+  #########################################################################
+  def execute_circle(self, exec_ctx):
+    radius = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(radius, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+  
+    aux= str(radius)
+    aux = int(aux)
+    turtle_circle(aux)
+    return(RTResult().success(Number.null))
+  execute_circle.arg_names = ["value"]
+
+  def execute_square(self, exec_ctx):
+    sq = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(sq, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(sq)
+    aux = int(aux)
+    turtle_square(aux)
+    return(RTResult().success(Number.null))
+  execute_square.arg_names = ["value"]
+
+  def execute_dot(self, exec_ctx):
+    dot = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(dot, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(dot)
+    aux = int(aux)
+    turtle_dot(aux)
+    return(RTResult().success(Number.null))
+  execute_dot.arg_names = ["value"]
+
+  def execute_penup(self, exec_ctx):
+    aTurtle.penup() 
+    return(RTResult().success(Number.null))
+  execute_penup.arg_names = []
+
+  def execute_pendown(self, exec_ctx):
+    aTurtle.pendown() 
+    return(RTResult().success(Number.null))
+  execute_pendown.arg_names = []
+
+  def execute_forward(self, exec_ctx):
+    distance = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(distance, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(distance)
+    aux = int(aux)
+    aTurtle.forward(aux)
+    return(RTResult().success(Number.null))
+  execute_forward.arg_names = ["value"]
+
+  def execute_backward(self, exec_ctx):
+    distance = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(distance, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argument must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(distance)
+    aux = int(aux)
+    aTurtle.backward(aux)
+    return(RTResult().success(Number.null))
+  execute_backward.arg_names = ["value"]
+
+  def execute_right(self, exec_ctx):
+    angle = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(angle, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Angle must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(angle)
+    aux = int(aux)
+    aTurtle.right(aux)
+    return(RTResult().success(Number.null))
+  execute_right.arg_names = ["value"]
+
+  def execute_left(self, exec_ctx):
+    angle = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(angle, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Angle must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(angle)
+    aux = int(aux)
+    aTurtle.left(aux)
+    return(RTResult().success(Number.null))
+  execute_left.arg_names = ["value"]
+
+  def execute_goto(self, exec_ctx):
+    x = exec_ctx.symbol_stack.get("x")
+    y = exec_ctx.symbol_stack.get("y")
+
+    if not isinstance(x, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "X argument must be Number",
+        exec_ctx
+      ))
+    if not isinstance(y, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Y argument must be Number",
+        exec_ctx
+      ))
+    auxX= str(x)
+    auxX = int(auxX)
+    auxY= str(y)
+    auxY = int(auxY)
+
+    aTurtle.goto(auxX, auxY)
+    return(RTResult().success(Number.null))
+  execute_goto.arg_names = ["x", "y"]
+
+  def execute_home(self, exec_ctx):
+    aTurtle.home() 
+    return(RTResult().success(Number.null))
+  execute_home.arg_names = []
+
+  def execute_bgcolor(self, exec_ctx):
+    color = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(color, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Color must be string",
+        exec_ctx
+      ))
+    
+    aux= str(color)
+    turtle.bgcolor(aux)
+    return(RTResult().success(Number.null))
+  execute_bgcolor.arg_names = ["value"]
+
+  def execute_turtlecolor(self, exec_ctx):
+    color = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(color, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Color must be string",
+        exec_ctx
+      ))
+    
+    aux= str(color)
+    aTurtle.fillcolor(aux)
+    return(RTResult().success(Number.null))
+  execute_turtlecolor.arg_names = ["value"]
+
+  def execute_title(self, exec_ctx):
+    title = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(title, String):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "title must be string",
+        exec_ctx
+      ))
+    
+    aux= str(title)
+    turtle.title(aux)
+    return(RTResult().success(Number.null))
+  execute_title.arg_names = ["value"]
+
+  def execute_pensize(self, exec_ctx):
+    size = exec_ctx.symbol_stack.get("value")
+
+    if not isinstance(size, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "size must be Number",
+        exec_ctx
+      ))
+    
+    aux= str(size)
+    aux = int(aux)
+    aTurtle.pensize(aux)
+    return(RTResult().success(Number.null))
+  execute_pensize.arg_names = ["value"]
+
+  def execute_turtleundo(self, exec_ctx):
+    aTurtle.undo() 
+    return(RTResult().success(Number.null))
+  execute_turtleundo.arg_names = []
+
+  def execute_turtleclear(self, exec_ctx):
+    aTurtle.clear() 
+    return(RTResult().success(Number.null))
+  execute_turtleclear.arg_names = []
+
+  def execute_turtlereset(self, exec_ctx):
+    aTurtle.reset() 
+    return(RTResult().success(Number.null))
+  execute_turtlereset.arg_names = []
+
+  def execute_stamp(self, exec_ctx):
+    aTurtle.stamp() 
+    return(RTResult().success(Number.null))
+  execute_stamp.arg_names = []
+
+  
+
+
+
+
+
+
+
+
+
+BuiltInFunction.write       = BuiltInFunction("write")
+BuiltInFunction.read       = BuiltInFunction("read")
+BuiltInFunction.read_int    = BuiltInFunction("read_int")
 BuiltInFunction.clear       = BuiltInFunction("clear")
 BuiltInFunction.is_number   = BuiltInFunction("is_number")
 BuiltInFunction.is_string   = BuiltInFunction("is_string")
 BuiltInFunction.is_list     = BuiltInFunction("is_list")
-BuiltInFunction.is_function = BuiltInFunction("is_function")
+BuiltInFunction.is_module   = BuiltInFunction("is_module")
 BuiltInFunction.append      = BuiltInFunction("append")
 BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
 BuiltInFunction.len					= BuiltInFunction("len")
+BuiltInFunction.set     = BuiltInFunction("set")
 BuiltInFunction.run					= BuiltInFunction("run")
+
+BuiltInFunction.circle       = BuiltInFunction("circle")
+BuiltInFunction.square      = BuiltInFunction("square")
+BuiltInFunction.dot      = BuiltInFunction("dot")
+BuiltInFunction.penup      = BuiltInFunction("penup")
+BuiltInFunction.pendown      = BuiltInFunction("pendown")
+BuiltInFunction.forward      = BuiltInFunction("forward")
+BuiltInFunction.backward      = BuiltInFunction("backward")
+BuiltInFunction.right      = BuiltInFunction("right")
+BuiltInFunction.left      = BuiltInFunction("left")
+BuiltInFunction.home      = BuiltInFunction("home")
+BuiltInFunction.goto      = BuiltInFunction("goto")
+BuiltInFunction.bgcolor      = BuiltInFunction("bgcolor")
+BuiltInFunction.turtlecolor      = BuiltInFunction("turtlecolor")
+BuiltInFunction.title      = BuiltInFunction("title")
+BuiltInFunction.pensize      = BuiltInFunction("pensize")
+BuiltInFunction.turtleundo      = BuiltInFunction("turtleundo")
+BuiltInFunction.turtleclear      = BuiltInFunction("turtleclear")
+BuiltInFunction.turtlereset     = BuiltInFunction("turtlereset")
+BuiltInFunction.stamp     = BuiltInFunction("stamp")
+
+
+
 
 #######################################
 # CONTEXT
@@ -1870,13 +2479,13 @@ class Context:
     self.display_name = display_name
     self.parent = parent
     self.parent_entry_pos = parent_entry_pos
-    self.symbol_table = None
+    self.symbol_stack = None
 
 #######################################
 # SYMBOL TABLE
 #######################################
 
-class SymbolTable:
+class SymbolStack:
   def __init__(self, parent=None):
     self.symbols = {}
     self.parent = parent
@@ -1886,9 +2495,18 @@ class SymbolTable:
     if value == None and self.parent:
       return self.parent.get(name)
     return value
+  
+  def exists(self, name):
+    value = self.symbols.get(name, None)
+    if value == None:
+      return False
+    return True
 
   def set(self, name, value):
     self.symbols[name] = value
+  
+  def tableLength(self):
+    return len(self.symbols)
 
   def remove(self, name):
     del self.symbols[name]
@@ -1906,7 +2524,7 @@ class Interpreter:
   def no_visit_method(self, node, context):
     raise Exception(f'No visit_{type(node).__name__} method defined')
 
-  ###################################
+  ############################################
 
   def visit_NumberNode(self, node, context):
     return RTResult().success(
@@ -1929,21 +2547,34 @@ class Interpreter:
     return res.success(
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
+  
 
   def visit_VarAccessNode(self, node, context):
     res = RTResult()
     var_name = node.var_name_tok.value
-    value = context.symbol_table.get(var_name)
+    value = context.symbol_stack.get(var_name)
 
     if not value:
       return res.failure(RTError(
         node.pos_start, node.pos_end,
-        f"'{var_name}' is not defined",
+        f"Variable '{var_name}' no definida",
         context
       ))
 
     value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
     return res.success(value)
+
+
+  def visit_VarReassignNode(self, node, context):
+    res = RTResult()
+    var_name = node.var_name_tok.value
+    value = res.register(self.visit(node.value_node, context))
+    if res.should_return(): return res
+
+    #if context.symbol_stack.exists(var_name):
+    context.symbol_stack.set(var_name, value)
+    return res.success(value)
+
 
   def visit_VarAssignNode(self, node, context):
     res = RTResult()
@@ -1951,7 +2582,7 @@ class Interpreter:
     value = res.register(self.visit(node.value_node, context))
     if res.should_return(): return res
 
-    context.symbol_table.set(var_name, value)
+    context.symbol_stack.set(var_name, value)
     return res.success(value)
 
   def visit_BinOpNode(self, node, context):
@@ -1983,15 +2614,16 @@ class Interpreter:
       result, error = left.get_comparison_lte(right)
     elif node.op_tok.type == TT_GTE:
       result, error = left.get_comparison_gte(right)
-    elif node.op_tok.matches(TT_KEYWORD, 'AND'):
+    elif node.op_tok.matches(TT_KEYWORD, 'and'):
       result, error = left.anded_by(right)
-    elif node.op_tok.matches(TT_KEYWORD, 'OR'):
+    elif node.op_tok.matches(TT_KEYWORD, 'or'):
       result, error = left.ored_by(right)
 
     if error:
       return res.failure(error)
     else:
       return res.success(result.set_pos(node.pos_start, node.pos_end))
+      #return res.success(result)
 
   def visit_UnaryOpNode(self, node, context):
     res = RTResult()
@@ -2002,7 +2634,7 @@ class Interpreter:
 
     if node.op_tok.type == TT_MINUS:
       number, error = number.multed_by(Number(-1))
-    elif node.op_tok.matches(TT_KEYWORD, 'NOT'):
+    elif node.op_tok.matches(TT_KEYWORD, 'not'):
       number, error = number.notted()
 
     if error:
@@ -2030,6 +2662,36 @@ class Interpreter:
 
     return res.success(Number.null)
 
+  def visit_MainNode(self, node, context):
+    res = RTResult()
+    elements = []
+    
+    body_node = node.body_node
+
+    value = res.register(self.visit(node.body_node, context))
+    if res.should_return() and res.loop_should_continue == False and res.loop_should_break == False: return res
+
+    elements.append(value)
+
+
+    return res.success(Number.null)
+  
+  def visit_ProgramNode(self, node, context):
+    res = RTResult()
+    elements = [] 
+
+    program_name = node.program_name.value if node.program_name else None
+  
+
+    body_node = node.body_node
+
+    value = res.register(self.visit(node.body_node, context))
+    if res.should_return() and res.loop_should_continue == False and res.loop_should_break == False: return res
+    
+    elements.append(value)
+
+    return res.success(Number.null)
+
   def visit_ForNode(self, node, context):
     res = RTResult()
     elements = []
@@ -2054,7 +2716,7 @@ class Interpreter:
       condition = lambda: i > end_value.value
     
     while condition():
-      context.symbol_table.set(node.var_name_tok.value, Number(i))
+      context.symbol_stack.set(node.var_name_tok.value, Number(i))
       i += step_value.value
 
       value = res.register(self.visit(node.body_node, context))
@@ -2100,6 +2762,7 @@ class Interpreter:
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
 
+
   def visit_FuncDefNode(self, node, context):
     res = RTResult()
 
@@ -2109,7 +2772,7 @@ class Interpreter:
     func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
     if node.var_name_tok:
-      context.symbol_table.set(func_name, func_value)
+      context.symbol_stack.set(func_name, func_value)
 
     return res.success(func_value)
 
@@ -2130,7 +2793,7 @@ class Interpreter:
     return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
     return res.success(return_value)
 
-  def visit_ReturnNode(self, node, context):
+  def visit_returnNode(self, node, context):
     res = RTResult()
 
     if node.node_to_return:
@@ -2151,26 +2814,47 @@ class Interpreter:
 # RUN
 #######################################
 
-global_symbol_table = SymbolTable()
-global_symbol_table.set("NULL", Number.null)
-global_symbol_table.set("FALSE", Number.false)
-global_symbol_table.set("TRUE", Number.true)
-global_symbol_table.set("MATH_PI", Number.math_PI)
-global_symbol_table.set("PRINT", BuiltInFunction.print)
-global_symbol_table.set("PRINT_RET", BuiltInFunction.print_ret)
-global_symbol_table.set("INPUT", BuiltInFunction.input)
-global_symbol_table.set("INPUT_INT", BuiltInFunction.input_int)
-global_symbol_table.set("CLEAR", BuiltInFunction.clear)
-global_symbol_table.set("CLS", BuiltInFunction.clear)
-global_symbol_table.set("IS_NUM", BuiltInFunction.is_number)
-global_symbol_table.set("IS_STR", BuiltInFunction.is_string)
-global_symbol_table.set("IS_LIST", BuiltInFunction.is_list)
-global_symbol_table.set("IS_FUN", BuiltInFunction.is_function)
-global_symbol_table.set("APPEND", BuiltInFunction.append)
-global_symbol_table.set("POP", BuiltInFunction.pop)
-global_symbol_table.set("EXTEND", BuiltInFunction.extend)
-global_symbol_table.set("LEN", BuiltInFunction.len)
-global_symbol_table.set("RUN", BuiltInFunction.run)
+global_symbol_stack = SymbolStack()
+global_symbol_stack.set("NULL", Number.null)
+global_symbol_stack.set("FALSE", Number.false)
+global_symbol_stack.set("TRUE", Number.true)
+global_symbol_stack.set("write", BuiltInFunction.write)
+global_symbol_stack.set("read", BuiltInFunction.read)
+global_symbol_stack.set("read_int", BuiltInFunction.read_int)
+global_symbol_stack.set("CLEAR", BuiltInFunction.clear)
+global_symbol_stack.set("CLS", BuiltInFunction.clear)
+global_symbol_stack.set("IS_NUM", BuiltInFunction.is_number)
+global_symbol_stack.set("IS_STR", BuiltInFunction.is_string)
+global_symbol_stack.set("IS_LIST", BuiltInFunction.is_list)
+global_symbol_stack.set("IS_MODULE", BuiltInFunction.is_module)
+global_symbol_stack.set("APPEND", BuiltInFunction.append)
+global_symbol_stack.set("POP", BuiltInFunction.pop)
+global_symbol_stack.set("EXTEND", BuiltInFunction.extend)
+global_symbol_stack.set("len", BuiltInFunction.len)
+global_symbol_stack.set("set", BuiltInFunction.set)
+global_symbol_stack.set("RUN", BuiltInFunction.run)
+global_symbol_stack.set("circle", BuiltInFunction.circle)
+global_symbol_stack.set("square", BuiltInFunction.square)
+global_symbol_stack.set("dot", BuiltInFunction.dot)
+global_symbol_stack.set("penup", BuiltInFunction.penup)
+global_symbol_stack.set("pendown", BuiltInFunction.pendown)
+global_symbol_stack.set("forward", BuiltInFunction.forward)
+global_symbol_stack.set("backward", BuiltInFunction.backward)
+global_symbol_stack.set("right", BuiltInFunction.right)
+global_symbol_stack.set("left", BuiltInFunction.left)
+global_symbol_stack.set("home", BuiltInFunction.home)
+global_symbol_stack.set("goto", BuiltInFunction.goto)
+global_symbol_stack.set("bgcolor", BuiltInFunction.bgcolor)
+global_symbol_stack.set("turtlecolor", BuiltInFunction.turtlecolor)
+global_symbol_stack.set("title", BuiltInFunction.title)
+global_symbol_stack.set("pensize", BuiltInFunction.pensize)
+global_symbol_stack.set("turtleundo", BuiltInFunction.turtleundo)
+global_symbol_stack.set("turtleclear", BuiltInFunction.turtleclear)
+global_symbol_stack.set("turtlereset", BuiltInFunction.turtlereset)
+global_symbol_stack.set("stamp", BuiltInFunction.stamp)
+
+
+
 
 def run(fn, text):
   # Generate tokens
@@ -2186,7 +2870,11 @@ def run(fn, text):
   # Run program
   interpreter = Interpreter()
   context = Context('<program>')
-  context.symbol_table = global_symbol_table
+  context.symbol_stack = global_symbol_stack
   result = interpreter.visit(ast.node, context)
 
+  start_Turtle()
+
   return result.value, result.error
+
+  

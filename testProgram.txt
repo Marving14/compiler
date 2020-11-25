@@ -1,0 +1,31 @@
+program marv; 
+
+module mod():
+    write("inside module")
+
+    for i=0 to 5 do:
+        write("inside for")
+    endFor
+    write("end of module mod")
+end
+
+module mod2():
+    write("inside module 2 ")
+
+    for i=0 to 5 do:
+        write(" for")
+    endFor
+    write("end of module mod 2 ")
+end
+
+main(){
+    var a =8;
+
+    write("hola");
+    var b = 80;
+    write(a+b);
+
+    mod()
+    write(a+b);
+    mod2() 
+}

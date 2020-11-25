@@ -1,0 +1,18 @@
+program testFor;
+
+var a = 5
+
+
+module mod():
+    write("inside module")
+
+    for i=0 to 5 do:
+        write("inside for")
+    endFor
+    write("end of endFor")
+end
+
+main(){
+    write(a)
+    mod()
+}

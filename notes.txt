@@ -1,3 +1,11 @@
+Todo 
+1. en parser -> generar cuadruplos
+2. conectar maquina virtual a cuadruplos
+3. PRINT no recibe cosas separadas por coma para imprimir varios
+
+
+
+
 IF <condition> THEN <expression> ELIF <condition> THEN <expression>
 1   modify atom to expect IF
 2   wrap in register
@@ -66,20 +74,21 @@ Div Op      : gets element in given position
 9 visit ForNode can now return list, update it 
 
 BUILD-IN FUNCTIONS 
-1 name must start with -->> execute_name    def execute_print...
-2 declare BuiltInFunction.name as a BuiltInFunction
-3 declare BuiltInFunction in Symbol Table global 
+ name must start with -->> execute_name    def execute_print...
+ declare BuiltInFunction.name as a BuiltInFunction
+ declare BuiltInFunction in Symbol Table global 
+ 
+1 In class BuiltInFunction ->  def execute_penUp(self, exec_ctx)
+2 Declar BuiltInFunction .name
+3 In RUN add to global_symbol_table 
+4 
+5
+6
 
-COMMENTS
-1 in lexer 
-2
-3
-4
+
 
 
 rem
-* change FUN to module 
-* change scape_character from '\\' to '%%'
+
 * context has the symbol table 
     exec_ctx -> execution context 
-* change comments from # to %% 
