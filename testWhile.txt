@@ -1,0 +1,23 @@
+var a = 8;
+
+
+module mod(num):
+    write("inside mod");
+    write("hola");
+    var num = num + 1
+    write(num)
+    return num
+end
+
+
+
+write(mod(a));
+
+
+while a < 10 do var a = a + 1
+
+
+write(a)
+
+
+

@@ -1,15 +1,9 @@
-import basic
-
-
-
-    
-
-
+import lexer
 
 while True: 
     text = input('marving > ')
     if text.strip() =="": continue
-    result, error = basic.run('<stdin>', text)
+    result, error = lexer.run('<stdin>', text)
     
     if error: print(error.as_string())
     elif result: 
@@ -22,16 +16,11 @@ while True:
 
 
 
-
-
-
-
-
 """
 while True: 
     text = input('marving > ')
     if text.strip() =="": continue
-    result, error = basic.run('<stdin>', text)
+    result, error = lexer.run('<stdin>', text)
     
     if error: print(error.as_string())
     elif result: 

@@ -1,0 +1,14 @@
+
+module mod():
+        if 4< 5 then: 
+                        write("then")
+        end
+        if 6< 5 then: 
+                        write(6)
+                else: 
+                        write("else")
+        end
+        write("Hola")
+end
+
+mod()

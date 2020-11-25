@@ -1,31 +1,14 @@
-PRINT("hello there  ")
-
-for i = 0 to 7 then
-    PRINT(i)
-    #PRINT(" loop")
-end 
 
 
-bgcolor("red")
-title("Holiiii")
 
-circle(80)
-square(50)
-dot(10)
-forward(30)
-penup()
-left(90)
-turtlecolor("green")
-forward(50)
-pendown()
-circle(80)
-turtleundo()
-goto(100,-100)
-stamp()
-circle(80)
-pensize(25)
-stamp()
-forward(30)
-turtleclear()
-turtlereset()
 
+
+%%module par(numero);
+%%    var a = 5;
+%%    for i=0 to 7 step 2 then
+ %%       write(message)
+  %%  end
+%%end
+
+
+%%printMesaggeX2("como tas")
