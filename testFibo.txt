@@ -30,33 +30,19 @@ module recursivo(n1, n2, n3, num, list):
     end
 end
 
+module fibo2(num):
+    if num > 1 then: 
+        return fibo2(num-1) + fibo2(num-2);
+    else:
+        return 1;
+    end
+end
+
+
 main(){
-    %% CYCLIC VERSION
-    var list = []
 
-    write("Escriba cantidad de numeros fibo")
-    var ask = read_int()
+    write(fibo2(20)); 
 
-    if ask == 0 then:
-        write("No se puede calcular el elemento 0 :) ")
-    end
-    if ask == 1 then:
-        list = list+0;
-    end
-    if ask == 2 then:
-        list = list + 0 + 1;
-    end
-    if ask > 2 then:
-        %%  CYCLIC
-%%        list = fibo(ask);
-
-        %% RECURSIVE
-        list = list + 0 + 1
-        list = recursivo(0, 1, 1, ask-2, list);
-    end
-
-    write(list)
     
-    %% TEST FIND
     
 }

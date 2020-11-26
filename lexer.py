@@ -127,9 +127,9 @@ class Position:
 #######################################
 # TOKENS
 #######################################
-TT_INT				= 'int'
-TT_FLOAT    	= 'float'
-TT_STRING			= 'STRING'
+TT_INT				= 'Int'
+TT_FLOAT    	= 'Float'
+TT_STRING			= 'String'
 TT_IDENTIFIER	= 'IDENTIFIER'
 TT_KEYWORD		= 'KEYWORD'
 TT_PLUS     	= 'PLUS'
@@ -180,14 +180,19 @@ KEYWORDS = [
   'continue',
   'break',
   'do',
-  'endFor'
+  'endFor',
+  'Number',
+  'Float',
+  'Int', 
+  'void',
+  'String',
+
 ]
 
 TYPES = [
-  'int',
-  'float',
-  'char',
-  'string',
+  'Int',
+  'Float',
+  'String',
   'void'
 ]
 
@@ -342,6 +347,7 @@ class Lexer:
       self.advance()
       escape_character = False
     
+    
     self.advance()
     return Token(TT_STRING, string, pos_start, self.pos)
 
@@ -429,6 +435,7 @@ class Lexer:
 class NumberNode:
   def __init__(self, tok):
     self.tok = tok
+    self.type = 'Int'
 
     self.pos_start = self.tok.pos_start
     self.pos_end = self.tok.pos_end
@@ -436,9 +443,33 @@ class NumberNode:
   def __repr__(self):
     return f'{self.tok}'
 
+class FloatNode:
+  def __init__(self, tok):
+    self.tok = tok
+    self.type = 'Float'
+
+    self.pos_start = self.tok.pos_start
+    self.pos_end = self.tok.pos_end
+
+  def __repr__(self):
+    return f'{self.tok}'
+
+class IntNode:
+  def __init__(self, tok):
+    self.tok = tok
+    self.type = 'Int'
+    
+    self.pos_start = self.tok.pos_start
+    self.pos_end = self.tok.pos_end
+
+  def __repr__(self):
+    return f'{self.tok}'
+    
+
 class StringNode:
   def __init__(self, tok):
     self.tok = tok
+    self.type = 'String'
 
     self.pos_start = self.tok.pos_start
     self.pos_end = self.tok.pos_end
@@ -449,22 +480,23 @@ class StringNode:
 class ListNode:
   def __init__(self, element_nodes, pos_start, pos_end):
     self.element_nodes = element_nodes
+    self.type = 'ListNode'
 
     self.pos_start = pos_start
     self.pos_end = pos_end
 
-class RemakeListNode:
-  def __init__(self, element_nodes, index, new_element, pos_start, pos_end):
-    self.element_nodes = element_nodes
-    self.element_nodes.insert(index, new_element)
+class MatNode:
+    def __init__(self, list_nodes, pos_start, pos_end):
+      self.list_nodes = list_nodes
+      self.type = 'MatNode'
 
-    self.pos_start = pos_start
-    self.pos_end = pos_end
-
+      self.pos_start = pos_start
+      self.pos_end = pos_end
 
 class VarAccessNode:
   def __init__(self, var_name_tok):
     self.var_name_tok = var_name_tok
+    self.type = 'VarAccessNode'
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.var_name_tok.pos_end
@@ -473,6 +505,7 @@ class VarReAssignNode:
   def __init__(self, var_name_tok, value_node):
     self.var_name_tok = var_name_tok
     self.value_node = value_node
+    self.type = 'VarReAssignNode'
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.value_node.pos_end
@@ -482,6 +515,7 @@ class VarAssignNode:
   def __init__(self, var_name_tok, value_node):
     self.var_name_tok = var_name_tok
     self.value_node = value_node
+    self.type = 'VarAssignNode'
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.value_node.pos_end
@@ -491,6 +525,7 @@ class BinOpNode:
     self.left_node = left_node
     self.op_tok = op_tok
     self.right_node = right_node
+    self.type = 'BinOpNode'
 
     self.pos_start = self.left_node.pos_start
     self.pos_end = self.right_node.pos_end
@@ -502,6 +537,7 @@ class UnaryOpNode:
   def __init__(self, op_tok, node):
     self.op_tok = op_tok
     self.node = node
+    self.type = 'UnaryOpNode'
 
     self.pos_start = self.op_tok.pos_start
     self.pos_end = node.pos_end
@@ -513,6 +549,7 @@ class IfNode:
   def __init__(self, cases, else_case):
     self.cases = cases
     self.else_case = else_case
+    self.type = 'IfNode'
 
     self.pos_start = self.cases[0][0].pos_start
     self.pos_end = (self.else_case or self.cases[len(self.cases) - 1])[0].pos_end
@@ -521,6 +558,7 @@ class MainNode:
   def __init__(self, body_node, should_return_null):
     self.body_node = body_node
     self.should_return_null = should_return_null
+    self.type = 'MainNode'
 
    
     self.pos_start = self.body_node.pos_start
@@ -532,6 +570,7 @@ class ProgramNode:
     self.program_name =  program_name
     self.body_node = body_node
     self.should_return_null = should_return_null
+    self.type = 'ProgramNode'
 
     self.pos_start = self.body_node.pos_start
     self.pos_end = self.body_node.pos_end
@@ -544,6 +583,7 @@ class ForNode:
     self.step_value_node = step_value_node
     self.body_node = body_node
     self.should_return_null = should_return_null
+    self.type = 'ForNode'
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.body_node.pos_end
@@ -553,16 +593,19 @@ class WhileNode:
     self.condition_node = condition_node
     self.body_node = body_node
     self.should_return_null = should_return_null
+    self.type = 'WhileNode'
 
     self.pos_start = self.condition_node.pos_start
     self.pos_end = self.body_node.pos_end
 
 class FuncDefNode:
-  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return):
+  def __init__(self, var_name_tok, arg_name_toks, body_node, type_ ,should_auto_return):
     self.var_name_tok = var_name_tok
     self.arg_name_toks = arg_name_toks
     self.body_node = body_node
+    self.type_ = type_
     self.should_auto_return = should_auto_return
+    self.type = 'FuncDefNode'
 
     if self.var_name_tok:
       self.pos_start = self.var_name_tok.pos_start
@@ -577,6 +620,7 @@ class CallNode:
   def __init__(self, node_to_call, arg_nodes):
     self.node_to_call = node_to_call
     self.arg_nodes = arg_nodes
+    self.type = 'CallNode'
 
     self.pos_start = self.node_to_call.pos_start
 
@@ -588,6 +632,7 @@ class CallNode:
 class returnNode:
   def __init__(self, node_to_return, pos_start, pos_end):
     self.node_to_return = node_to_return
+    self.type = 'returnNode'
 
     self.pos_start = pos_start
     self.pos_end = pos_end
@@ -596,11 +641,13 @@ class ContinueNode:
   def __init__(self, pos_start, pos_end):
     self.pos_start = pos_start
     self.pos_end = pos_end
+    self.type = 'ContinueNode'
 
 class BreakNode:
   def __init__(self, pos_start, pos_end):
     self.pos_start = pos_start
     self.pos_end = pos_end
+    self.type = 'BreakNode'
 
 #######################################
 # PARSE RESULT
@@ -742,7 +789,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'return', 'continue', 'break', 'var', 'if', 'for', 'while', 'module', 'int', 'float', 'identifier', '+', '-', '(', '[' or 'not'"
+        "Expected 'return', 'continue', 'break', 'var', 'if', 'for', 'while', 'module', 'Int', 'Float', 'identifier', '+', '-', '(', '[' or 'not'"
       ))
     return res.success(expr)
 
@@ -755,6 +802,31 @@ class Parser:
       res.register_advancement()
       self.advance()
 
+      booll = False
+      type_ = ''
+
+      if self.current_tok.matches(TT_KEYWORD, 'Int'):
+        type_ = 'Int'
+        booll = True
+      elif self.current_tok.matches(TT_KEYWORD, 'Number'):
+        type_ = 'Number'
+        booll = True
+      elif self.current_tok.matches(TT_KEYWORD, 'String'):
+        type_ = 'String'
+        booll = True
+      elif self.current_tok.matches(TT_KEYWORD, 'Float'):
+        type_ = 'Float'
+        booll = True
+
+      if not booll:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected var 'type' "
+        ))
+
+      res.register_advancement()
+      self.advance()
+
       if self.current_tok.type != TT_IDENTIFIER:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
@@ -762,8 +834,10 @@ class Parser:
         ))
 
       var_name = self.current_tok
+
       res.register_advancement()
       self.advance()
+
 
       if self.current_tok.type != TT_EQ:
         return res.failure(InvalidSyntaxError(
@@ -774,6 +848,20 @@ class Parser:
       res.register_advancement()
       self.advance()
       expr = res.register(self.expr())
+
+  
+      if expr:
+        if expr.type == 'Int' or expr.type == 'String' or expr.type == 'Float' or expr.type == 'Number':
+          #print(expr.type)
+          #print(type_)
+
+          if expr.type != type_:
+            return res.failure(InvalidSyntaxError(
+              expr.pos_start, expr.pos_end,
+              "Ilegal types operation"
+            ))
+
+
       if res.error: return res
       return res.success(VarAssignNode(var_name, expr))
 
@@ -782,7 +870,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
+        "Expected 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
       ))
 
     return res.success(node)
@@ -804,7 +892,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected int, float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', 'module' or 'not'"
+        "Expected Int, Float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', 'module' or 'not'"
       ))
 
     return res.success(node)
@@ -849,7 +937,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected ')', 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
+            "Expected ')', 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
           ))
 
         while self.current_tok.type == TT_COMMA:
@@ -876,10 +964,15 @@ class Parser:
     element_nodes = []
     pos_start = self.current_tok.pos_start.copy()
 
-    if tok.type in (TT_INT, TT_FLOAT):
+    if tok.type == TT_INT:
       res.register_advancement()
       self.advance()
-      return res.success(NumberNode(tok))
+      return res.success(IntNode(tok))
+    
+    if tok.type == TT_FLOAT:
+      res.register_advancement()
+      self.advance()
+      return res.success(FloatNode(tok))
 
     elif tok.type == TT_STRING:
       res.register_advancement()
@@ -908,7 +1001,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
+            "Expected 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
           ))
 
         return res.success(node)
@@ -962,9 +1055,24 @@ class Parser:
       while_expr = res.register(self.while_expr())
       if res.error: return res
       return res.success(while_expr)
-
-    elif tok.matches(TT_KEYWORD, 'module'):
-      func_def = res.register(self.func_def())
+    elif tok.matches(TT_KEYWORD, 'void'):
+      func_def = res.register(self.function_def())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'Number'):
+      func_def = res.register(self.function_def())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'Int'):
+      func_def = res.register(self.function_def())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'String'):
+      func_def = res.register(self.function_def())
+      if res.error: return res
+      return res.success(func_def)
+    elif tok.matches(TT_KEYWORD, 'Float'):
+      func_def = res.register(self.function_def())
       if res.error: return res
       return res.success(func_def)
     elif tok.matches(TT_KEYWORD, 'program'):
@@ -978,12 +1086,13 @@ class Parser:
 
     return res.failure(InvalidSyntaxError(
       tok.pos_start, tok.pos_end,
-      "Expected int, float, identifier, '+', '-', '(', '[', if', 'for', 'while', 'module'"
+      "Expected Int, Float, identifier, '+', '-', '(', '[', if', 'for', 'while', 'module'"
     ))
 
   def list_expr(self):
     res = ParseResult()
     element_nodes = []
+    list_nodes = []
     pos_start = self.current_tok.pos_start.copy()
 
     if self.current_tok.type != TT_LSQUARE:
@@ -991,42 +1100,185 @@ class Parser:
         self.current_tok.pos_start, self.current_tok.pos_end,
         f"Expected '['"
       ))
-
+    #print(self.current_tok.type)
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_RSQUARE:
-      res.register_advancement()
-      self.advance()
-    else:
-      element_nodes.append(res.register(self.expr()))
-      if res.error:
-        return res.failure(InvalidSyntaxError(
-          self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected ']', 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
-        ))
+    # Case list
+    if self.current_tok.type != TT_LSQUARE:
 
-      while self.current_tok.type == TT_COMMA:
+      if self.current_tok.type == TT_RSQUARE:
+        res.register_advancement()
+        self.advance()
+      else:
+        element_nodes.append(res.register(self.expr()))
+        if res.error:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected ']', 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
+          ))
+
+        while self.current_tok.type == TT_COMMA:
+          res.register_advancement()
+          self.advance()
+
+          element_nodes.append(res.register(self.expr()))
+          if res.error: return res
+        
+        if self.current_tok.type != TT_RSQUARE:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            f"Expected ',' or ']'"
+          ))
+
         res.register_advancement()
         self.advance()
 
-        element_nodes.append(res.register(self.expr()))
-        if res.error: return res
+      return res.success(ListNode(
+        element_nodes,
+        pos_start,
+        self.current_tok.pos_end.copy()
+      ))
+    
+    else:
+      # CASE MAT
+      con = True
+      # segundo [
+      if self.current_tok.type != TT_LSQUARE:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected '['"
+        ))
+      #print("middle if", self.current_tok.type)
+      res.register_advancement()
+      self.advance()
+      #print("before s if", self.current_tok.type)
 
+      if self.current_tok.type == TT_RSQUARE:
+        res.register_advancement()
+        self.advance()
+        #print("if second ]", self.current_tok.type)
+      else:
+        #print("tok else", self.current_tok.type)
+        element_nodes.append(res.register(self.expr()))
+        if res.error:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected ']', 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
+          ))
+
+        while self.current_tok.type == TT_COMMA:
+          res.register_advancement()
+          self.advance()
+
+          element_nodes.append(res.register(self.expr()))
+          if res.error: return res
+        
+        # Primer  ] 
+        if self.current_tok.type != TT_RSQUARE:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            f"Expected ',' or ']'"
+          ))
+
+        res.register_advancement()
+        self.advance()
+      
+
+      #print("tok before append", self.current_tok.type)
+
+
+      element = ListNode(
+        element_nodes,
+        pos_start,
+        self.current_tok.pos_end.copy()
+      ) 
+      list_nodes.append(element)
+      #print(list_nodes)
+
+      while self.current_tok.type == TT_COMMA:
+        element_nodes = []
+        res.register_advancement()
+        self.advance()
+        # segundo [
+        if self.current_tok.type != TT_LSQUARE:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            f"Expected '['"
+          ))
+        #print("middle if", self.current_tok.type)
+        res.register_advancement()
+        self.advance()
+        #print("before s if", self.current_tok.type)
+
+        if self.current_tok.type == TT_RSQUARE:
+          res.register_advancement()
+          self.advance()
+          #print("if second ]", self.current_tok.type)
+        else:
+          #print("tok else", self.current_tok.type)
+          element_nodes.append(res.register(self.expr()))
+          if res.error:
+            return res.failure(InvalidSyntaxError(
+              self.current_tok.pos_start, self.current_tok.pos_end,
+              "Expected ']', 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
+            ))
+
+          while self.current_tok.type == TT_COMMA:
+            res.register_advancement()
+            self.advance()
+
+            element_nodes.append(res.register(self.expr()))
+            if res.error: return res
+          
+          # Primer  ] 
+          if self.current_tok.type != TT_RSQUARE:
+            return res.failure(InvalidSyntaxError(
+              self.current_tok.pos_start, self.current_tok.pos_end,
+              f"Expected ',' or ']'"
+            ))
+
+          res.register_advancement()
+          self.advance()
+        
+
+        #print("tok before append", self.current_tok.type)
+
+
+        element = ListNode(
+          element_nodes,
+          pos_start,
+          self.current_tok.pos_end.copy()
+        ) 
+        list_nodes.append(element)
+        #print(list_nodes)
+
+      
+
+      # ] de fin de mat
       if self.current_tok.type != TT_RSQUARE:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected ',' or ']'"
+          f"Expected ']'"
         ))
+      #print(self.current_tok.type)
 
       res.register_advancement()
       self.advance()
+      #print(self.current_tok.type)
 
-    return res.success(ListNode(
-      element_nodes,
-      pos_start,
-      self.current_tok.pos_end.copy()
-    ))
+
+      #print("llega aqui xd")
+
+      return res.success(MatNode(
+        list_nodes,
+        pos_start,
+        self.current_tok.pos_end.copy()
+      ))
+
+      
+        
+
 
   def if_expr(self):
     res = ParseResult()
@@ -1381,9 +1633,151 @@ class Parser:
     if res.error: return res
 
     return res.success(WhileNode(condition, body, False))
+  ###############################
+  def function_def(self):
+    res = ParseResult()
+
+    booll = False
+    type_ = ''
+
+    if self.current_tok.matches(TT_KEYWORD, 'void'):
+      type_ = 'void'
+      booll = True
+    elif self.current_tok.matches(TT_KEYWORD, 'Int'):
+      type_ = 'Int'
+      booll = True
+    elif self.current_tok.matches(TT_KEYWORD, 'Number'):
+      type_ = 'Number'
+      booll = True
+    elif self.current_tok.matches(TT_KEYWORD, 'String'):
+      type_ = 'String'
+      booll = True
+    elif self.current_tok.matches(TT_KEYWORD, 'Float'):
+      type_ = 'Float'
+      booll = True
+    
 
 
+    if not booll:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected 'type' module"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    if not self.current_tok.matches(TT_KEYWORD, 'module'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected 'module'"
+      ))
+
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type == TT_IDENTIFIER:
+      var_name_tok = self.current_tok
+      res.register_advancement()
+      self.advance()
+      if self.current_tok.type != TT_LPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected '('"
+        ))
+    else:
+      var_name_tok = None
+      if self.current_tok.type != TT_LPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected identifier "
+        ))
+    
+    res.register_advancement()
+    self.advance()
+    arg_name_toks = []
+
+    if self.current_tok.type == TT_IDENTIFIER:
+      arg_name_toks.append(self.current_tok)
+      res.register_advancement()
+      self.advance()
+      
+      while self.current_tok.type == TT_COMMA:
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != TT_IDENTIFIER:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            f"Expected identifier"
+          ))
+
+        arg_name_toks.append(self.current_tok)
+        res.register_advancement()
+        self.advance()
+      
+      if self.current_tok.type != TT_RPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected ',' or ')'"
+        ))
+    else:
+      if self.current_tok.type != TT_RPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          f"Expected identifier or ')'"
+        ))
+
+    res.register_advancement()
+    self.advance()
+
+    # remove 
+    if self.current_tok.type == TT_ARROW:
+      res.register_advancement()
+      self.advance()
+
+      body = res.register(self.expr())
+      if res.error: return res
+
+      return res.success(FuncDefNode(
+        var_name_tok,
+        arg_name_toks,
+        body,
+        True
+      ))
+    
+    if self.current_tok.type != TT_FUNCLINE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected '->' or ':'"
+      ))
+
+    res.register_advancement()
+    self.advance()
+
+    body = res.register(self.statements())
+    if res.error: return res
+
+    if not self.current_tok.matches(TT_KEYWORD, 'end'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected 'end'"
+      ))
+
+    res.register_advancement()
+    self.advance()
+    
+    return res.success(FuncDefNode(
+      var_name_tok,
+      arg_name_toks,
+      body,
+      type_, 
+      False
+    ))
+
+  ############################################
   # func_def espera module como input para crear una funcion o metodo 
+  """
   def func_def(self):
     res = ParseResult()
 
@@ -1493,7 +1887,7 @@ class Parser:
       body,
       False
     ))
-
+  """
   ###################################
 
   def bin_op(self, func_a, ops, func_b=None):
@@ -1651,6 +2045,7 @@ class Number(Value):
   def __init__(self, value):
     super().__init__()
     self.value = value
+    self.type = 'Number'
 
   def added_to(self, other):
     if isinstance(other, Number):
@@ -1691,49 +2086,49 @@ class Number(Value):
 
   def get_comparison_eq(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value == other.value)).set_context(self.context), None
+      return Number(Int(self.value == other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_ne(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value != other.value)).set_context(self.context), None
+      return Number(Int(self.value != other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_lt(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value < other.value)).set_context(self.context), None
+      return Number(Int(self.value < other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_gt(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value > other.value)).set_context(self.context), None
+      return Number(Int(self.value > other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_lte(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value <= other.value)).set_context(self.context), None
+      return Number(Int(self.value <= other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_gte(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value >= other.value)).set_context(self.context), None
+      return Number(Int(self.value >= other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def anded_by(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value and other.value)).set_context(self.context), None
+      return Number(Int(self.value and other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def ored_by(self, other):
     if isinstance(other, Number):
-      return Number(int(self.value or other.value)).set_context(self.context), None
+      return Number(Int(self.value or other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
@@ -1759,10 +2154,236 @@ Number.null = Number(0)
 Number.false = Number(0)
 Number.true = Number(1)
 
+
+class Float(Value):
+  def __init__(self, value):
+    super().__init__()
+    self.value = value
+    self.type = 'Float'
+
+  def added_to(self, other):
+    if isinstance(other, Float):
+      return Float(self.value + other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def subbed_by(self, other):
+    if isinstance(other, Float):
+      return Float(self.value - other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def multed_by(self, other):
+    if isinstance(other, Float):
+      return Float(self.value * other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def dived_by(self, other):
+    if isinstance(other, Float):
+      if other.value == 0:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Division by zero',
+          self.context
+        )
+
+      return Float(self.value / other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def powed_by(self, other):
+    if isinstance(other, Float):
+      return Float(self.value ** other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_eq(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value == other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_ne(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value != other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_lt(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value < other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_gt(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value > other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_lte(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value <= other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_gte(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value >= other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def anded_by(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value and other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def ored_by(self, other):
+    if isinstance(other, Float):
+      return Float(float(self.value or other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def notted(self):
+    return Float(1 if self.value == 0 else 0).set_context(self.context), None
+
+  def copy(self):
+    copy = Float(self.value)
+    copy.set_pos(self.pos_start, self.pos_end)
+    copy.set_context(self.context)
+    return copy
+
+  def is_true(self):
+    return self.value != 0
+
+  def __str__(self):
+    return str(self.value)
+  
+  def __repr__(self):
+    return str(self.value)
+
+
+class Int(Value):
+  def __init__(self, value):
+    super().__init__()
+    self.value = value
+    self.type = 'Int'
+
+  def added_to(self, other):
+    if isinstance(other, Int):
+      return Int(self.value + other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def subbed_by(self, other):
+    if isinstance(other, Int):
+      return Int(self.value - other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def multed_by(self, other):
+    if isinstance(other, Int):
+      return Int(self.value * other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def dived_by(self, other):
+    if isinstance(other, Int):
+      if other.value == 0:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Division by zero',
+          self.context
+        )
+
+      return Int(self.value / other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def powed_by(self, other):
+    if isinstance(other, Int):
+      return Int(self.value ** other.value).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_eq(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value == other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_ne(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value != other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_lt(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value < other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_gt(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value > other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_lte(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value <= other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def get_comparison_gte(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value >= other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def anded_by(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value and other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def ored_by(self, other):
+    if isinstance(other, Int):
+      return Int(int(self.value or other.value)).set_context(self.context), None
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  def notted(self):
+    return Int(1 if self.value == 0 else 0).set_context(self.context), None
+
+  def copy(self):
+    copy = Int(self.value)
+    copy.set_pos(self.pos_start, self.pos_end)
+    copy.set_context(self.context)
+    return copy
+
+  def is_true(self):
+    return self.value != 0
+
+  def __str__(self):
+    return str(self.value)
+  
+  def __repr__(self):
+    return str(self.value)
+
+Int.null = Int(0)
+Int.false = Int(0)
+Int.true = Int(1)
+
+
 class String(Value):
   def __init__(self, value):
     super().__init__()
     self.value = value
+    self.type = 'String'
 
   # concatena texto
   def added_to(self, other):
@@ -1792,10 +2413,12 @@ class String(Value):
   def __repr__(self):
     return f'"{self.value}"'
 
+
 class List(Value):
   def __init__(self, elements):
     super().__init__()
     self.elements = elements
+    self.type = 'List'
   
   def getElems(self):
     return self.elements
@@ -1810,7 +2433,7 @@ class List(Value):
     return new_list, None
   # eliminar elm en N position 
   def subbed_by(self, other):
-    if isinstance(other, Number):
+    if isinstance(other, Int):
       new_list = self.copy()
       try:
         new_list.elements.pop(other.value)
@@ -1836,7 +2459,7 @@ class List(Value):
   # extract N elem from list
   # Ya funciona Asies 
   def dived_by(self, other):
-    if isinstance(other, Number):
+    if isinstance(other, Int):
       try:
         return self.elements[other.value], None
       except:
@@ -1849,7 +2472,7 @@ class List(Value):
       return None, Value.illegal_operation(self, other)
   
   def setElem(self, index, value):
-    if isinstance(index, Number):
+    if isinstance(index, Int):
       try:
           self.elements[index.value] = value.value
           return self.elements[index.value], None
@@ -1874,6 +2497,94 @@ class List(Value):
 
   def __repr__(self):
     return f'[{", ".join([repr(x) for x in self.elements])}]'
+
+
+
+class Mat(Value):
+  def __init__(self, lists):
+    super().__init__()
+    self.lists = lists
+    self.type = 'Mat'
+  
+  def getElems(self):
+    return self.lists
+  
+  def getLen(self):
+    return len(self.lists)
+
+  # agregar list a mat
+  def added_to(self, other):
+    new_mat = self.copy()
+    new_mat.lists.append(other)
+    return new_mat, None
+
+  # eliminar elm en N position 
+  def subbed_by(self, other):
+    if isinstance(other, Int):
+      new_mat = self.copy()
+      try:
+        new_mat.lists.pop(other.value)
+        return new_mat, None
+      except:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Index out of bounds',
+          self.context
+        )
+    else:
+      return None, Value.illegal_operation(self, other)
+
+  # concatena mat
+  def multed_by(self, other):
+    if isinstance(other, Mat):
+      new_mat = self.copy()
+      new_mat.lists.extend(other.lists)
+      return new_mat, None
+    else:
+      return None, Value.illegal_operation(self, other)
+  
+  # extract N elem from list
+  # Ya funciona Asies 
+  def dived_by(self, other):
+    if isinstance(other, List):
+      try:
+        return self.lists[other.elements], None
+      except:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Element at this index could not be retrieved from list because index is out of bounds',
+          self.context
+        )
+    else:
+      return None, Value.illegal_operation(self, other)
+  
+  def setList(self, index, listA):
+    if isinstance(index, Int):
+      try:
+          self.lists[index.value] = listA.elements
+          return self.lists[index.value], None
+      except:
+        return None, RTError(
+          other.pos_start, other.pos_end,
+          'Element at this index could not be retrieved from list because index is out of bounds',
+          self.context
+        )
+    else:
+      return None, Value.illegal_operation(self, index)
+      
+
+  def copy(self):
+    copy = Mat(self.lists)
+    copy.set_pos(self.pos_start, self.pos_end)
+    copy.set_context(self.context)
+    return copy
+
+  def __str__(self):
+    return ", ".join([str(x) for x in self.lists])
+
+  def __repr__(self):
+    return f'[{", ".join([repr(x) for x in self.lists])}]'
+
 
 class BaseFunction(Value):
   def __init__(self, name):
@@ -1919,14 +2630,15 @@ class BaseFunction(Value):
     return res.success(None)
 
 class Function(BaseFunction):
-  def __init__(self, name, body_node, arg_names, should_auto_return):
+  def __init__(self, name, body_node, type_, arg_names, should_auto_return):
     super().__init__(name)
     self.body_node = body_node
     self.arg_names = arg_names
+    self.type_ = type_
     self.should_auto_return = should_auto_return
 
   def execute(self, args):
-    res = RTResult()
+    res = RTResult() 
     interpreter = Interpreter()
     exec_ctx = self.generate_new_context()
 
@@ -1936,11 +2648,53 @@ class Function(BaseFunction):
     value = res.register(interpreter.visit(self.body_node, exec_ctx))
     if res.should_return() and res.func_return_value == None: return res
 
-    ret_value = (value if self.should_auto_return else None) or res.func_return_value or Number.null
-    return res.success(ret_value)
+    if self.type_ == 'void':
+      if self.should_auto_return or res.func_return_value: 
+        return res.failure(InvalidSyntaxError(
+          self.body_node.pos_start, self.body_node.pos_end,
+          "Void method can not return"
+        ))
+      return res.success(Int.null)
+
+    if self.type_ == 'Int':
+      ret_value = (value if self.should_auto_return else None) or res.func_return_value or Int.null
+      
+      if ret_value.type != 'Int':
+        return res.failure(InvalidSyntaxError(
+          ret_value.pos_start, ret_value.pos_end,
+          "Method method can not return other type"
+        ))
+      return res.success(ret_value)
+
+    if self.type_ == 'Float':
+      ret_value = (value if self.should_auto_return else None) or res.func_return_value or Int.null
+      
+      if ret_value.type != 'Float':
+        return res.failure(InvalidSyntaxError(
+          ret_value.pos_start, ret_value.pos_end,
+          "Method method can not return other type"
+        ))
+      return res.success(ret_value)
+
+
+    
+    if self.type_ == 'String':
+      ret_value = (value if self.should_auto_return else None) or res.func_return_value or Int.null
+
+      if ret_value.type != 'String':
+        return res.failure(InvalidSyntaxError(
+          ret_value.pos_start, ret_value.pos_end,
+          "Method method can not return other type"
+        ))
+      return res.success(ret_value)
+  
+
+
+    #ret_value = (value if self.should_auto_return else None) or res.func_return_value or Number.null
+    return res.success(Int.null)
 
   def copy(self):
-    copy = Function(self.name, self.body_node, self.arg_names, self.should_auto_return)
+    copy = Function(self.name, self.body_node, self.type_, self.arg_names, self.should_auto_return)
     copy.set_context(self.context)
     copy.set_pos(self.pos_start, self.pos_end)
     return copy
@@ -1982,7 +2736,7 @@ class BuiltInFunction(BaseFunction):
   #####################################
   def execute_write(self, exec_ctx):
     print(str(exec_ctx.symbol_stack.get('value')))
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_write.arg_names = ['value']
   
   def execute_read(self, exec_ctx):
@@ -1998,18 +2752,18 @@ class BuiltInFunction(BaseFunction):
         break
       except ValueError:
         print(f"'{text}' must be an integer. Try again!")
-    return RTResult().success(Number(number))
+    return RTResult().success(Int(number))
   execute_read_int.arg_names = []
 
   def execute_clear(self, exec_ctx):
     os.system('cls' if os.name == 'nt' else 'cls') 
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_clear.arg_names = []
 
-  def execute_is_number(self, exec_ctx):
-    is_number = isinstance(exec_ctx.symbol_stack.get("value"), Number)
-    return RTResult().success(Number.true if is_number else Number.false)
-  execute_is_number.arg_names = ["value"]
+  def execute_is_Int(self, exec_ctx):
+    is_Int = isinstance(exec_ctx.symbol_stack.get("value"), Int)
+    return RTResult().success(Int.true if is_Int else Int.false)
+  execute_is_Int.arg_names = ["value"]
 
   def execute_is_string(self, exec_ctx):
     is_number = isinstance(exec_ctx.symbol_stack.get("value"), String)
@@ -2038,7 +2792,7 @@ class BuiltInFunction(BaseFunction):
       ))
 
     list_.elements.append(value)
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_append.arg_names = ["list", "value"]
 
   def execute_pop(self, exec_ctx):
@@ -2052,10 +2806,10 @@ class BuiltInFunction(BaseFunction):
         exec_ctx
       ))
 
-    if not isinstance(index, Number):
+    if not isinstance(index, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Second argument must be number",
+        "Second argument must be Int",
         exec_ctx
       ))
 
@@ -2089,7 +2843,7 @@ class BuiltInFunction(BaseFunction):
       ))
 
     listA.elements.extend(listB.elements)
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_extend.arg_names = ["listA", "listB"]
 
   def execute_len(self, exec_ctx):
@@ -2102,7 +2856,7 @@ class BuiltInFunction(BaseFunction):
         exec_ctx
       ))
 
-    return RTResult().success(Number(len(list_.elements)))
+    return RTResult().success(Int(len(list_.elements)))
   execute_len.arg_names = ["list"]
 
   def execute_run(self, exec_ctx):
@@ -2111,7 +2865,7 @@ class BuiltInFunction(BaseFunction):
     if not isinstance(fn, String):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Second argument must be string",
+        "Second argument must be String",
         exec_ctx
       ))
 
@@ -2137,7 +2891,7 @@ class BuiltInFunction(BaseFunction):
         exec_ctx
       ))
 
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_run.arg_names = ["fn"]
 
   ############################################################################
@@ -2153,13 +2907,13 @@ class BuiltInFunction(BaseFunction):
         "Argument must be list",
         exec_ctx
       ))
-    if not isinstance(value, Number):
+    if not isinstance(value, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be number",
+        "Argument must be Int",
         exec_ctx
       ))
-    if not isinstance(index, Number):
+    if not isinstance(index, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
         "Argument must be number",
@@ -2185,146 +2939,146 @@ class BuiltInFunction(BaseFunction):
         'Index fuera de limites de lista xd ',
         exec_ctx
       ))
-    return RTResult().success(Number.null)
+    return RTResult().success(Int.null)
   execute_set.arg_names = ["listA", "index", "value"]
   
   #########################################################################
   def execute_circle(self, exec_ctx):
     radius = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(radius, Number):
+    if not isinstance(radius, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be Number",
+        "Argument must be Int",
         exec_ctx
       ))
   
     aux= str(radius)
     aux = int(aux)
     turtle_circle(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_circle.arg_names = ["value"]
 
   def execute_square(self, exec_ctx):
     sq = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(sq, Number):
+    if not isinstance(sq, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be Number",
+        "Argument must be Int",
         exec_ctx
       ))
     
     aux= str(sq)
     aux = int(aux)
     turtle_square(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_square.arg_names = ["value"]
 
   def execute_dot(self, exec_ctx):
     dot = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(dot, Number):
+    if not isinstance(dot, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be Number",
+        "Argument must be Int",
         exec_ctx
       ))
     
     aux= str(dot)
     aux = int(aux)
     turtle_dot(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_dot.arg_names = ["value"]
 
   def execute_penup(self, exec_ctx):
     aTurtle.penup() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_penup.arg_names = []
 
   def execute_pendown(self, exec_ctx):
     aTurtle.pendown() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_pendown.arg_names = []
 
   def execute_forward(self, exec_ctx):
     distance = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(distance, Number):
+    if not isinstance(distance, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be Number",
+        "Argument must be Int",
         exec_ctx
       ))
     
     aux= str(distance)
     aux = int(aux)
     aTurtle.forward(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_forward.arg_names = ["value"]
 
   def execute_backward(self, exec_ctx):
     distance = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(distance, Number):
+    if not isinstance(distance, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Argument must be Number",
+        "Argument must be Int",
         exec_ctx
       ))
     
     aux= str(distance)
     aux = int(aux)
     aTurtle.backward(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_backward.arg_names = ["value"]
 
   def execute_right(self, exec_ctx):
     angle = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(angle, Number):
+    if not isinstance(angle, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Angle must be Number",
+        "Angle must be Int",
         exec_ctx
       ))
     
     aux= str(angle)
     aux = int(aux)
     aTurtle.right(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_right.arg_names = ["value"]
 
   def execute_left(self, exec_ctx):
     angle = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(angle, Number):
+    if not isinstance(angle, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Angle must be Number",
+        "Angle must be Int",
         exec_ctx
       ))
     
     aux= str(angle)
     aux = int(aux)
     aTurtle.left(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_left.arg_names = ["value"]
 
   def execute_goto(self, exec_ctx):
     x = exec_ctx.symbol_stack.get("x")
     y = exec_ctx.symbol_stack.get("y")
 
-    if not isinstance(x, Number):
+    if not isinstance(x, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "X argument must be Number",
+        "X argument must be Int",
         exec_ctx
       ))
-    if not isinstance(y, Number):
+    if not isinstance(y, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Y argument must be Number",
+        "Y argument must be Int",
         exec_ctx
       ))
     auxX= str(x)
@@ -2333,12 +3087,12 @@ class BuiltInFunction(BaseFunction):
     auxY = int(auxY)
 
     aTurtle.goto(auxX, auxY)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_goto.arg_names = ["x", "y"]
 
   def execute_home(self, exec_ctx):
     aTurtle.home() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_home.arg_names = []
 
   def execute_bgcolor(self, exec_ctx):
@@ -2347,13 +3101,13 @@ class BuiltInFunction(BaseFunction):
     if not isinstance(color, String):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Color must be string",
+        "Color must be String",
         exec_ctx
       ))
     
     aux= str(color)
     turtle.bgcolor(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_bgcolor.arg_names = ["value"]
 
   def execute_turtlecolor(self, exec_ctx):
@@ -2362,13 +3116,13 @@ class BuiltInFunction(BaseFunction):
     if not isinstance(color, String):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "Color must be string",
+        "Color must be String",
         exec_ctx
       ))
     
     aux= str(color)
     aTurtle.fillcolor(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_turtlecolor.arg_names = ["value"]
 
   def execute_title(self, exec_ctx):
@@ -2377,49 +3131,49 @@ class BuiltInFunction(BaseFunction):
     if not isinstance(title, String):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "title must be string",
+        "title must be String",
         exec_ctx
       ))
     
     aux= str(title)
     turtle.title(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_title.arg_names = ["value"]
 
   def execute_pensize(self, exec_ctx):
     size = exec_ctx.symbol_stack.get("value")
 
-    if not isinstance(size, Number):
+    if not isinstance(size, Int):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
-        "size must be Number",
+        "size must be Int",
         exec_ctx
       ))
     
     aux= str(size)
     aux = int(aux)
     aTurtle.pensize(aux)
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_pensize.arg_names = ["value"]
 
   def execute_turtleundo(self, exec_ctx):
     aTurtle.undo() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_turtleundo.arg_names = []
 
   def execute_turtleclear(self, exec_ctx):
     aTurtle.clear() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_turtleclear.arg_names = []
 
   def execute_turtlereset(self, exec_ctx):
     aTurtle.reset() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_turtlereset.arg_names = []
 
   def execute_stamp(self, exec_ctx):
     aTurtle.stamp() 
-    return(RTResult().success(Number.null))
+    return(RTResult().success(Int.null))
   execute_stamp.arg_names = []
 
   
@@ -2436,7 +3190,7 @@ BuiltInFunction.write       = BuiltInFunction("write")
 BuiltInFunction.read       = BuiltInFunction("read")
 BuiltInFunction.read_int    = BuiltInFunction("read_int")
 BuiltInFunction.clear       = BuiltInFunction("clear")
-BuiltInFunction.is_number   = BuiltInFunction("is_number")
+BuiltInFunction.is_Int   = BuiltInFunction("is_Int")
 BuiltInFunction.is_string   = BuiltInFunction("is_string")
 BuiltInFunction.is_list     = BuiltInFunction("is_list")
 BuiltInFunction.is_module   = BuiltInFunction("is_module")
@@ -2530,11 +3284,22 @@ class Interpreter:
     return RTResult().success(
       Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
+  
+  def visit_IntNode(self, node, context):
+    return RTResult().success(
+      Int(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+    )
+
+  def visit_FloatNode(self, node, context):
+    return RTResult().success(
+      Float(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+    )
 
   def visit_StringNode(self, node, context):
     return RTResult().success(
       String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
+
 
   def visit_ListNode(self, node, context):
     res = RTResult()
@@ -2547,8 +3312,19 @@ class Interpreter:
     return res.success(
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
-  
 
+  def visit_MatNode(self, node, context):
+    res = RTResult()
+    lists = []
+
+    for element_node in node.list_nodes:
+      lists.append(res.register(self.visit(element_node, context)))
+      if res.should_return(): return res
+
+    return res.success(
+      Mat(lists).set_context(context).set_pos(node.pos_start, node.pos_end)
+    )
+  
   def visit_VarAccessNode(self, node, context):
     res = RTResult()
     var_name = node.var_name_tok.value
@@ -2633,7 +3409,7 @@ class Interpreter:
     error = None
 
     if node.op_tok.type == TT_MINUS:
-      number, error = number.multed_by(Number(-1))
+      number, error = number.multed_by(Int(-1))
     elif node.op_tok.matches(TT_KEYWORD, 'not'):
       number, error = number.notted()
 
@@ -2652,15 +3428,15 @@ class Interpreter:
       if condition_value.is_true():
         expr_value = res.register(self.visit(expr, context))
         if res.should_return(): return res
-        return res.success(Number.null if should_return_null else expr_value)
+        return res.success(Int.null if should_return_null else expr_value)
 
     if node.else_case:
       expr, should_return_null = node.else_case
       expr_value = res.register(self.visit(expr, context))
       if res.should_return(): return res
-      return res.success(Number.null if should_return_null else expr_value)
+      return res.success(Int.null if should_return_null else expr_value)
 
-    return res.success(Number.null)
+    return res.success(Int.null)
 
   def visit_MainNode(self, node, context):
     res = RTResult()
@@ -2674,7 +3450,7 @@ class Interpreter:
     elements.append(value)
 
 
-    return res.success(Number.null)
+    return res.success(Int.null)
   
   def visit_ProgramNode(self, node, context):
     res = RTResult()
@@ -2690,7 +3466,7 @@ class Interpreter:
     
     elements.append(value)
 
-    return res.success(Number.null)
+    return res.success(Int.null)
 
   def visit_ForNode(self, node, context):
     res = RTResult()
@@ -2700,13 +3476,14 @@ class Interpreter:
     if res.should_return(): return res
 
     end_value = res.register(self.visit(node.end_value_node, context))
+    #print("end val: ", end_value.type)
     if res.should_return(): return res
 
     if node.step_value_node:
       step_value = res.register(self.visit(node.step_value_node, context))
       if res.should_return(): return res
     else:
-      step_value = Number(1)
+      step_value = Int(1)
 
     i = start_value.value
 
@@ -2716,7 +3493,7 @@ class Interpreter:
       condition = lambda: i > end_value.value
     
     while condition():
-      context.symbol_stack.set(node.var_name_tok.value, Number(i))
+      context.symbol_stack.set(node.var_name_tok.value, Int(i))
       i += step_value.value
 
       value = res.register(self.visit(node.body_node, context))
@@ -2731,7 +3508,7 @@ class Interpreter:
       elements.append(value)
 
     return res.success(
-      Number.null if node.should_return_null else
+      Int.null if node.should_return_null else
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
 
@@ -2758,7 +3535,7 @@ class Interpreter:
       elements.append(value)
 
     return res.success(
-      Number.null if node.should_return_null else
+      Int.null if node.should_return_null else
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
 
@@ -2768,8 +3545,10 @@ class Interpreter:
 
     func_name = node.var_name_tok.value if node.var_name_tok else None
     body_node = node.body_node
+    type_ = node.type_
     arg_names = [arg_name.value for arg_name in node.arg_name_toks]
-    func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
+    #func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
+    func_value = Function(func_name, body_node, type_, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
     if node.var_name_tok:
       context.symbol_stack.set(func_name, func_value)
@@ -2800,7 +3579,7 @@ class Interpreter:
       value = res.register(self.visit(node.node_to_return, context))
       if res.should_return(): return res
     else:
-      value = Number.null
+      value = Int.null
     
     return res.success_return(value)
 
@@ -2815,15 +3594,15 @@ class Interpreter:
 #######################################
 
 global_symbol_stack = SymbolStack()
-global_symbol_stack.set("NULL", Number.null)
-global_symbol_stack.set("FALSE", Number.false)
-global_symbol_stack.set("TRUE", Number.true)
+global_symbol_stack.set("NULL", Int.null)
+global_symbol_stack.set("FALSE", Int.false)
+global_symbol_stack.set("TRUE", Int.true)
 global_symbol_stack.set("write", BuiltInFunction.write)
 global_symbol_stack.set("read", BuiltInFunction.read)
 global_symbol_stack.set("read_int", BuiltInFunction.read_int)
 global_symbol_stack.set("CLEAR", BuiltInFunction.clear)
 global_symbol_stack.set("CLS", BuiltInFunction.clear)
-global_symbol_stack.set("IS_NUM", BuiltInFunction.is_number)
+global_symbol_stack.set("IS_INT", BuiltInFunction.is_Int)
 global_symbol_stack.set("IS_STR", BuiltInFunction.is_string)
 global_symbol_stack.set("IS_LIST", BuiltInFunction.is_list)
 global_symbol_stack.set("IS_MODULE", BuiltInFunction.is_module)
@@ -2876,5 +3655,3 @@ def run(fn, text):
   start_Turtle()
 
   return result.value, result.error
-
-  

@@ -19,6 +19,7 @@ module printMesagge(message):
     else:
         write("b MAYOR") 
     end
+    printMesagge("hola");
 end
 
 main() {
