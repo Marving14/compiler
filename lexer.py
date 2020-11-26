@@ -849,17 +849,16 @@ class Parser:
       self.advance()
       expr = res.register(self.expr())
 
-  
-      if expr:
-        if expr.type == 'Int' or expr.type == 'String' or expr.type == 'Float' or expr.type == 'Number':
-          #print(expr.type)
-          #print(type_)
 
-          if expr.type != type_:
-            return res.failure(InvalidSyntaxError(
-              expr.pos_start, expr.pos_end,
-              "Ilegal types operation"
-            ))
+      
+      if expr.type == 'Int' or expr.type == 'String' or expr.type == 'Float' or expr.type == 'Number':
+        #print(expr.type)
+        #print(type_)
+        if expr.type != type_:
+          return res.failure(InvalidSyntaxError(
+            expr.pos_start, expr.pos_end,
+            "Ilegal types operation"
+          ))
 
 
       if res.error: return res
@@ -1274,10 +1273,7 @@ class Parser:
         list_nodes,
         pos_start,
         self.current_tok.pos_end.copy()
-      ))
-
-      
-        
+      )) 
 
 
   def if_expr(self):
@@ -2393,7 +2389,7 @@ class String(Value):
       return None, Value.illegal_operation(self, other)
   
   def multed_by(self, other):
-    if isinstance(other, Number):
+    if isinstance(other, Int):
       return String(self.value * other.value).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
@@ -2426,11 +2422,12 @@ class List(Value):
   def getLen(self):
     return len(self.elements)
 
-  # agregar elemento a lista
+  # agregar elemento a lista 1
   def added_to(self, other):
     new_list = self.copy()
     new_list.elements.append(other)
     return new_list, None
+
   # eliminar elm en N position 
   def subbed_by(self, other):
     if isinstance(other, Int):
@@ -2515,8 +2512,12 @@ class Mat(Value):
   # agregar list a mat
   def added_to(self, other):
     new_mat = self.copy()
-    new_mat.lists.append(other)
-    return new_mat, None
+    if isinstance(other, List):
+      cont = new_mat.getLen()
+      new_mat.lists.insert(cont, other)
+      return new_mat, None
+    else:
+      return None, Value.illegal_operation(self, other)
 
   # eliminar elm en N position 
   def subbed_by(self, other):
@@ -2543,12 +2544,12 @@ class Mat(Value):
     else:
       return None, Value.illegal_operation(self, other)
   
-  # extract N elem from list
+  # extract N elem from Mat
   # Ya funciona Asies 
   def dived_by(self, other):
-    if isinstance(other, List):
+    if isinstance(other, Int):
       try:
-        return self.lists[other.elements], None
+        return self.lists[other.value], None
       except:
         return None, RTError(
           other.pos_start, other.pos_end,
@@ -2558,7 +2559,7 @@ class Mat(Value):
     else:
       return None, Value.illegal_operation(self, other)
   
-  def setList(self, index, listA):
+  def setMat(self, index, listA):
     if isinstance(index, Int):
       try:
           self.lists[index.value] = listA.elements
@@ -2895,11 +2896,10 @@ class BuiltInFunction(BaseFunction):
   execute_run.arg_names = ["fn"]
 
   ############################################################################
-  def execute_set(self, exec_ctx):
+  def execute_setList(self, exec_ctx):
     listA = exec_ctx.symbol_stack.get("listA")
     index = exec_ctx.symbol_stack.get("index")
     value = exec_ctx.symbol_stack.get("value")
-
 
     if not isinstance(listA, List):
       return RTResult().failure(RTError(
@@ -2919,11 +2919,7 @@ class BuiltInFunction(BaseFunction):
         "Argument must be number",
         exec_ctx
       ))
-
     try:
-      #listA.elements.setElem(index.value, value.value)
-
-      #listA.elements[index.value] = value.value
       co = listA.elements[index.value].copy()
       #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
       co.value = value.value
@@ -2931,8 +2927,6 @@ class BuiltInFunction(BaseFunction):
 
       listA.elements.pop(index.value)
       listA.elements.insert(index.value, co)
-
-
     except:
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
@@ -2940,7 +2934,50 @@ class BuiltInFunction(BaseFunction):
         exec_ctx
       ))
     return RTResult().success(Int.null)
-  execute_set.arg_names = ["listA", "index", "value"]
+  execute_setList.arg_names = ["listA", "index", "value"]
+  #####################################################################
+
+  def execute_setMat(self, exec_ctx):
+    MatA = exec_ctx.symbol_stack.get("MatA")
+    index = exec_ctx.symbol_stack.get("index")
+    listA = exec_ctx.symbol_stack.get("listA")
+
+
+    if not isinstance(MatA, Mat):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "First argument must be Mat",
+        exec_ctx
+      ))
+    if not isinstance(index, Int):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Second argument must be Int",
+        exec_ctx
+      ))
+    if not isinstance(listA, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Last argument must be list",
+        exec_ctx
+      ))
+
+    try:
+      co = MatA.lists[index.value].copy()
+      #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
+      co.elements = listA.elements
+      #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
+
+      MatA.lists.pop(index.value)
+      MatA.lists.insert(index.value, co)
+    except:
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        'Index fuera de limites de lista xd ',
+        exec_ctx
+      ))
+    return RTResult().success(Int.null)
+  execute_setMat.arg_names = ["MatA", "index", "listA"]
   
   #########################################################################
   def execute_circle(self, exec_ctx):
@@ -3198,7 +3235,8 @@ BuiltInFunction.append      = BuiltInFunction("append")
 BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
 BuiltInFunction.len					= BuiltInFunction("len")
-BuiltInFunction.set     = BuiltInFunction("set")
+BuiltInFunction.setList     = BuiltInFunction("setList")
+BuiltInFunction.setMat     = BuiltInFunction("setMat")
 BuiltInFunction.run					= BuiltInFunction("run")
 
 BuiltInFunction.circle       = BuiltInFunction("circle")
@@ -3610,7 +3648,8 @@ global_symbol_stack.set("APPEND", BuiltInFunction.append)
 global_symbol_stack.set("POP", BuiltInFunction.pop)
 global_symbol_stack.set("EXTEND", BuiltInFunction.extend)
 global_symbol_stack.set("len", BuiltInFunction.len)
-global_symbol_stack.set("set", BuiltInFunction.set)
+global_symbol_stack.set("setList", BuiltInFunction.setList)
+global_symbol_stack.set("setMat", BuiltInFunction.setMat)
 global_symbol_stack.set("RUN", BuiltInFunction.run)
 global_symbol_stack.set("circle", BuiltInFunction.circle)
 global_symbol_stack.set("square", BuiltInFunction.square)
