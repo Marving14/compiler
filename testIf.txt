@@ -1,5 +1,7 @@
 
-module mod():
+Int module mod():
+        var Int at = 12; 
+        var String b = "a"; 
         if 4< 5 then: 
                         write("then")
         end
@@ -9,6 +11,11 @@ module mod():
                         write("else")
         end
         write("Hola")
+        return at;
+end 
+
+Int module lol():
+        return 1; 
 end
 
-mod()
+write(mod()) 

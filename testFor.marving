@@ -1,6 +1,7 @@
+program testFor;
+
 var a = 5
 
-write(a)
 
 module mod():
     write("inside module")

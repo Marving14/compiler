@@ -1,10 +1,13 @@
+
+
 statement       : NEWLINE* expr (NEWLINE+ expr)
 
 expr            :  KEYWORD:VAR IDENTIFIER EQ expr 
                 : comp-expr ((KEYWORD:AND|KEYWORD:OR) comp-expr)*
+                : program-expr
 
-comp-expr	    : NOT comp-expr
-                : arith-expr ((EE|LT|GT|LTE|GTE) arith-expr)*
+  comp-expr	    : NOT comp-expr
+                  : arith-expr ((EE|LT|GT|LTE|GTE) arith-expr)*
 
 arith-expr      :  term ((PLUS1MINS) term) * 
 
@@ -20,6 +23,7 @@ call            : atom (LPARENT (expr (COMMA expr)*)? RPARENT)?
 
 
 atom            :  INT|FLOAT|IDENTIFIER
+                : main-expr
                 :  LPARENT expr RPARENT
                 : list-expr
                 : if-expr

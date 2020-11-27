@@ -1,16 +1,19 @@
 program factorial;
 
-module fact(num):
+Int module fact(num):
     %%write(num)
-    var acum=1; 
+    var Int acum=1; 
+    
     for i=1 to num+1 do:
         acum = acum*i
         %%write(acum)
     endFor;
+
+    %%write(acum)
     return acum;
 end
 
-module recursivo(num):
+Int module recursivo(num):
     if num >= 1 then:
         return num * recursivo(num-1)
     else:
@@ -18,17 +21,19 @@ module recursivo(num):
     end
 end
 
-
 main(){
+    var Int a = 5;
+    var String c ="h"; 
+    write(a)
+
     write("Escriba numero entero")
-    var ask = read_int()
+    var Int ask = read_int()
 
 
     %% TEST CYCLIC
-    %% write(fact(ask))
+    write(fact(ask))
 
     %% TEST RECURSIVE 
     %% write(recursivo(ask))
-
 
 }
