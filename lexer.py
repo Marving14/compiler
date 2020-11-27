@@ -187,12 +187,14 @@ KEYWORDS = [
   'void',
   'String',
 
+		 
 ]
 
 TYPES = [
   'Int',
   'Float',
   'String',
+		   
   'void'
 ]
 
@@ -489,6 +491,9 @@ class MatNode:
     def __init__(self, list_nodes, pos_start, pos_end):
       self.list_nodes = list_nodes
       self.type = 'MatNode'
+
+							  
+						  
 
       self.pos_start = pos_start
       self.pos_end = pos_end
@@ -799,6 +804,60 @@ class Parser:
     res = ParseResult()
 
     if self.current_tok.matches(TT_KEYWORD, 'var'):
+
+
+ #     print("holi", self.tokens)
+
+      le = len(self.tokens)
+      type_ = self.tokens[1].value
+  #    print("type_: ", type_)
+      
+
+      # is list
+      isVar = self.tokens[4].type
+      isList = self.tokens[4].type
+      isMat = self.tokens[5].type
+
+#      print("isVar: ", isVar)
+  #    print("isList: ", isList)
+   #   print("isMat: ", isMat)
+
+      #check if MAT
+      if isMat == 'LSQUARE' and isList == 'LSQUARE' and isVar == 'LSQUARE':
+        # Is MAT
+   #     print("len: ", le)
+  #      print(self.tokens[6])
+        cont  = 6
+        while cont < le-3:
+          if self.tokens[cont].type == 'COMMA':
+            cont = cont +2
+
+          if type_ != self.tokens[cont].type:
+            return res.failure(InvalidSyntaxError(
+              self.current_tok.pos_start, self.current_tok.pos_end,
+              "Type mismatch xd "
+            ))
+          cont = cont + 2
+      elif isMat != 'LSQUARE' and isList == 'LSQUARE' and isVar == 'LSQUARE':
+        # IS LIST
+        cont = 5
+        while cont < le-2:
+          if type_ != self.tokens[cont].type:
+            return res.failure(InvalidSyntaxError(
+              self.current_tok.pos_start, self.current_tok.pos_end,
+              "Type mismatch xd "
+            ))
+          cont = cont + 2
+
+      elif (isMat == 'EOF' or isMat == 'NEWLINE') and isList != 'LSQUARE' and isVar != 'LSQUARE':
+        # IS VAR
+        if type_ != isVar:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Type mismatch xd "
+          ))
+
+
       res.register_advancement()
       self.advance()
 
@@ -849,19 +908,8 @@ class Parser:
       self.advance()
       expr = res.register(self.expr())
 
-
-      
-      if expr.type == 'Int' or expr.type == 'String' or expr.type == 'Float' or expr.type == 'Number':
-        #print(expr.type)
-        #print(type_)
-        if expr.type != type_:
-          return res.failure(InvalidSyntaxError(
-            expr.pos_start, expr.pos_end,
-            "Ilegal types operation"
-          ))
-
-
-      if res.error: return res
+      if res.error:
+        return res
       return res.success(VarAssignNode(var_name, expr))
 
     node = res.register(self.bin_op(self.comp_expr, ((TT_KEYWORD, 'and'), (TT_KEYWORD, 'or'))))
@@ -1071,6 +1119,10 @@ class Parser:
       if res.error: return res
       return res.success(func_def)
     elif tok.matches(TT_KEYWORD, 'Float'):
+												  
+							  
+								  
+										  
       func_def = res.register(self.function_def())
       if res.error: return res
       return res.success(func_def)
@@ -1114,7 +1166,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected ']', 'var', 'if', 'for', 'while', 'module', Int, Float, identifier, '+', '-', '(', '[' or 'not'"
+            "Expected ']', 'var', 'if', 'for', 'while', 'module', int, float, identifier, '+', '-', '(', '[' or 'not'"
           ))
 
         while self.current_tok.type == TT_COMMA:
@@ -1123,7 +1175,7 @@ class Parser:
 
           element_nodes.append(res.register(self.expr()))
           if res.error: return res
-        
+          
         if self.current_tok.type != TT_RSQUARE:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
@@ -1266,6 +1318,11 @@ class Parser:
       self.advance()
       #print(self.current_tok.type)
 
+								
+					
+				
+									 
+	  
 
       #print("llega aqui xd")
 
@@ -1648,6 +1705,9 @@ class Parser:
     elif self.current_tok.matches(TT_KEYWORD, 'String'):
       type_ = 'String'
       booll = True
+													  
+					
+				  
     elif self.current_tok.matches(TT_KEYWORD, 'Float'):
       type_ = 'Float'
       booll = True
@@ -2082,49 +2142,49 @@ class Number(Value):
 
   def get_comparison_eq(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value == other.value)).set_context(self.context), None
+      return Number(int(self.value == other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_ne(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value != other.value)).set_context(self.context), None
+      return Number(int(self.value != other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_lt(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value < other.value)).set_context(self.context), None
+      return Number(int(self.value < other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_gt(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value > other.value)).set_context(self.context), None
+      return Number(int(self.value > other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_lte(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value <= other.value)).set_context(self.context), None
+      return Number(int(self.value <= other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def get_comparison_gte(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value >= other.value)).set_context(self.context), None
+      return Number(int(self.value >= other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def anded_by(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value and other.value)).set_context(self.context), None
+      return Number(int(self.value and other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
   def ored_by(self, other):
     if isinstance(other, Number):
-      return Number(Int(self.value or other.value)).set_context(self.context), None
+      return Number(int(self.value or other.value)).set_context(self.context), None
     else:
       return None, Value.illegal_operation(self, other)
 
@@ -2901,6 +2961,7 @@ class BuiltInFunction(BaseFunction):
     index = exec_ctx.symbol_stack.get("index")
     value = exec_ctx.symbol_stack.get("value")
 
+
     if not isinstance(listA, List):
       return RTResult().failure(RTError(
         self.pos_start, self.pos_end,
@@ -2919,7 +2980,11 @@ class BuiltInFunction(BaseFunction):
         "Argument must be number",
         exec_ctx
       ))
+
     try:
+													   
+
+												
       co = listA.elements[index.value].copy()
       #print(co.pos_start, "val: ", co.value, "end: ", co.pos_end)
       co.value = value.value
@@ -3350,6 +3415,7 @@ class Interpreter:
     return res.success(
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
+  
 
   def visit_MatNode(self, node, context):
     res = RTResult()
