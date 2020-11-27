@@ -482,7 +482,7 @@ class StringNode:
 class ListNode:
   def __init__(self, element_nodes, pos_start, pos_end):
     self.element_nodes = element_nodes
-    self.type = 'ListNode'
+    self.type = 'ListNode' 
 
     self.pos_start = pos_start
     self.pos_end = pos_end
@@ -805,28 +805,17 @@ class Parser:
 
     if self.current_tok.matches(TT_KEYWORD, 'var'):
 
-
- #     print("holi", self.tokens)
-
       le = len(self.tokens)
       type_ = self.tokens[1].value
-  #    print("type_: ", type_)
-      
 
       # is list
       isVar = self.tokens[4].type
       isList = self.tokens[4].type
       isMat = self.tokens[5].type
 
-#      print("isVar: ", isVar)
-  #    print("isList: ", isList)
-   #   print("isMat: ", isMat)
-
       #check if MAT
       if isMat == 'LSQUARE' and isList == 'LSQUARE' and isVar == 'LSQUARE':
         # Is MAT
-   #     print("len: ", le)
-  #      print(self.tokens[6])
         cont  = 6
         while cont < le-3:
           if self.tokens[cont].type == 'COMMA':
@@ -1146,6 +1135,10 @@ class Parser:
     list_nodes = []
     pos_start = self.current_tok.pos_start.copy()
 
+    #############################################################
+    typeOfList = self.tokens[1].value
+    #############################################################
+
     if self.current_tok.type != TT_LSQUARE:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
@@ -1184,6 +1177,8 @@ class Parser:
 
         res.register_advancement()
         self.advance()
+      
+
 
       return res.success(ListNode(
         element_nodes,
@@ -1303,35 +1298,21 @@ class Parser:
         ) 
         list_nodes.append(element)
         #print(list_nodes)
-
-      
-
       # ] de fin de mat
       if self.current_tok.type != TT_RSQUARE:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
           f"Expected ']'"
         ))
-      #print(self.current_tok.type)
 
       res.register_advancement()
       self.advance()
-      #print(self.current_tok.type)
-
-								
-					
-				
-									 
-	  
-
-      #print("llega aqui xd")
 
       return res.success(MatNode(
         list_nodes,
         pos_start,
         self.current_tok.pos_end.copy()
       )) 
-
 
   def if_expr(self):
     res = ParseResult()
@@ -2475,6 +2456,7 @@ class List(Value):
     super().__init__()
     self.elements = elements
     self.type = 'List'
+    self.typeOfList = ''
   
   def getElems(self):
     return self.elements
@@ -2484,6 +2466,8 @@ class List(Value):
 
   # agregar elemento a lista 1
   def added_to(self, other):
+    print("self elements tipo: ", self)
+    print("other tipo: ", other.type)
     new_list = self.copy()
     new_list.elements.append(other)
     return new_list, None
@@ -3411,6 +3395,7 @@ class Interpreter:
     for element_node in node.element_nodes:
       elements.append(res.register(self.visit(element_node, context)))
       if res.should_return(): return res
+
 
     return res.success(
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
